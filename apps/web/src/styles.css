@@ -1,0 +1,418 @@
+@import "@hestia/ui/tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(196, 107, 58, 0.18), transparent 55%),
+    var(--hestia-bg);
+  color: var(--hestia-ink);
+  font-family: var(--hestia-sans);
+}
+
+.shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: end;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--hestia-line);
+}
+
+.brand {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.flame {
+  width: 14px;
+  height: 22px;
+  border-radius: 10px 10px 6px 6px;
+  background: linear-gradient(180deg, #f0c27a 0%, var(--hestia-ember) 70%, #7a3118 100%);
+  box-shadow: 0 0 24px rgba(196, 107, 58, 0.45);
+}
+
+.eyebrow {
+  margin: 0 0 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.68rem;
+  color: var(--hestia-muted);
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--hestia-serif);
+  font-weight: 640;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  letter-spacing: -0.03em;
+}
+
+.thesis {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--hestia-muted);
+  line-height: 1.5;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.rooms {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.room,
+.hearth,
+.automation,
+.rail section {
+  background: var(--hestia-bg-elevated);
+  border: 1px solid var(--hestia-line);
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
+}
+
+.automation {
+  grid-column: 1 / 3;
+}
+
+.room h2 {
+  font-size: 1.25rem;
+}
+
+.entity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.quality {
+  color: var(--hestia-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quality.good {
+  color: var(--hestia-ok);
+}
+
+.quality.unavailable,
+.quality.stale {
+  color: var(--hestia-warn);
+}
+
+.room small {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--hestia-muted);
+}
+
+.room p,
+.hearth p,
+.rail p {
+  margin: 0.35rem 0 0;
+  color: var(--hestia-muted);
+}
+
+.hearth {
+  min-height: 280px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+  border: 1px solid var(--hestia-line);
+}
+
+.pill.ok {
+  color: var(--hestia-ok);
+}
+
+.pill.warn {
+  color: var(--hestia-warn);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  margin-top: 1.2rem;
+}
+
+button {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1.05rem;
+  background: var(--hestia-ember);
+  color: #1a100b;
+  font: 600 0.95rem var(--hestia-sans);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+button.secondary {
+  border: 1px solid var(--hestia-line);
+  background: transparent;
+  color: var(--hestia-ink);
+}
+
+.intent-form,
+.clarification-form {
+  margin-top: 1.2rem;
+}
+
+.intent-form > label,
+.clarification-form > label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--hestia-muted);
+  font-size: 0.82rem;
+}
+
+.intent-form > div,
+.clarification-form > div {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.intent-form input,
+.clarification-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 12px;
+  background: var(--hestia-bg);
+  color: var(--hestia-ink);
+  font: inherit;
+}
+
+.intent-summary {
+  color: var(--hestia-muted);
+}
+
+.routine-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.routine-options legend {
+  margin-bottom: 0.65rem;
+  color: var(--hestia-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.routine-options label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 12px;
+}
+
+.routine-options input[type="number"] {
+  width: 4rem;
+  margin-right: 0.25rem;
+  padding: 0.35rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 8px;
+  background: var(--hestia-bg);
+  color: var(--hestia-ink);
+}
+
+.routine-options label.check-option {
+  justify-content: start;
+}
+
+.plan-preview,
+.run-state,
+.audit {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 12px;
+}
+
+.plan-preview h3 {
+  margin: 0;
+  font-family: var(--hestia-serif);
+}
+
+.plan-preview ol,
+.run-state ol,
+.audit ol {
+  margin: 0.7rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.plan-preview li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+.plan-preview em {
+  color: var(--hestia-muted);
+  font-style: normal;
+}
+
+.approval {
+  margin-top: 0.8rem;
+  border: 0;
+  padding: 0;
+}
+
+.approval legend {
+  font-weight: 700;
+}
+
+.approval button + button {
+  margin-left: 0.5rem;
+}
+
+.automation p.warning {
+  color: var(--hestia-warn);
+}
+
+.room.empty button {
+  margin-top: 1rem;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.facts {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1.2rem 0 0;
+}
+
+.facts div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+dt {
+  color: var(--hestia-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+dd {
+  margin: 0;
+}
+
+.facts dd {
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
+.error {
+  color: var(--hestia-bad);
+}
+
+.rail {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.rail ul {
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.caps li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.28rem 0;
+  border-top: 1px solid var(--hestia-line);
+  font-size: 0.9rem;
+}
+
+.caps em {
+  color: var(--hestia-muted);
+  font-style: normal;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rail {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .automation {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .layout,
+  .rail,
+  .routine-options {
+    grid-template-columns: 1fr;
+  }
+}

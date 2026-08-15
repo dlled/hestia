@@ -1,0 +1,364 @@
+name: hestia-prod
+
+# Home production stack. Only the web and edge API bind to the host, and both
+# default to loopback. Inject secret-shaped values from the orchestrator; this
+# file deliberately has no development credentials.
+
+x-common-env: &common-env
+  HESTIA_ENV: home-prod
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DATABASE_URL: postgres://hestia:${HESTIA_DB_PASSWORD:?HESTIA_DB_PASSWORD is required}@postgres:5432/hestia
+  NATS_URL: nats://nats:4222
+  HOME_ID: ${HOME_ID:-home_primary}
+  HOME_CORE_URL: http://home-core:3000
+  INTEGRATION_HUB_URL: http://integration-hub:3000
+  AUTOMATION_SERVICE_URL: http://automation-service:3000
+  AI_ORCHESTRATOR_URL: http://ai-orchestrator:3000
+  MODEL_GATEWAY_URL: http://model-gateway:3000
+  MINIO_ENDPOINT: http://minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+  MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+  MINIO_BUCKET: ${MINIO_BUCKET:-hestia}
+  TEMPORAL_ADDRESS: temporal:7233
+  TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+  TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:-hestia-automation}
+
+x-node-service: &node-service
+  image: hestia-node:${HESTIA_IMAGE_TAG:-local}
+  build:
+    context: ../..
+    dockerfile: infra/docker/node.Dockerfile
+  init: true
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  networks:
+    - hestia
+
+x-http-healthcheck: &http-healthcheck
+  test:
+    - CMD
+    - node
+    - -e
+    - fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+  interval: 10s
+  timeout: 3s
+  retries: 10
+  start_period: 10s
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: postgres
+      HESTIA_DB_PASSWORD: ${HESTIA_DB_PASSWORD:?HESTIA_DB_PASSWORD is required}
+      TEMPORAL_DB_PASSWORD: ${TEMPORAL_DB_PASSWORD:?TEMPORAL_DB_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hestia
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  nats:
+    image: nats:2.11-alpine
+    restart: unless-stopped
+    command: ["-js", "-m", "8222", "--store_dir", "/data"]
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8222/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hestia
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hestia
+
+  temporal:
+    image: temporalio/auto-setup:1.27.2
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_DB_PASSWORD:?TEMPORAL_DB_PASSWORD is required}
+      POSTGRES_SEEDS: postgres
+      DBNAME: temporal
+      VISIBILITY_DBNAME: temporal_visibility
+      SKIP_DB_CREATE: "true"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hestia
+
+  edge-api:
+    <<: *node-service
+    command: ["node", "apps/edge-api/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+      WEB_ORIGIN: ${WEB_ORIGIN:?WEB_ORIGIN is required}
+    ports:
+      - "${EDGE_API_BIND_ADDRESS:-127.0.0.1}:${EDGE_API_PORT:-3000}:3000"
+    depends_on:
+      home-core:
+        condition: service_healthy
+      integration-hub:
+        condition: service_healthy
+      automation-service:
+        condition: service_healthy
+      ai-orchestrator:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    healthcheck: *http-healthcheck
+
+  home-core:
+    <<: *node-service
+    command: ["node", "apps/home-core/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck: *http-healthcheck
+
+  integration-hub:
+    <<: *node-service
+    command: ["node", "apps/integration-hub/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+      HA_BASE_URL: ${HA_BASE_URL:-}
+      HA_ACCESS_TOKEN: ${HA_ACCESS_TOKEN:-}
+      HA_INSTANCE_ID: ${HA_INSTANCE_ID:-ha_main}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck: *http-healthcheck
+
+  automation-service:
+    <<: *node-service
+    command: ["node", "apps/automation-service/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    healthcheck: *http-healthcheck
+
+  ai-orchestrator:
+    <<: *node-service
+    command: ["node", "apps/ai-orchestrator/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+      MODEL_GATEWAY_INTERNAL_TOKEN: ${MODEL_GATEWAY_INTERNAL_TOKEN:?MODEL_GATEWAY_INTERNAL_TOKEN is required}
+    depends_on:
+      automation-service:
+        condition: service_healthy
+      model-gateway:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+    healthcheck: *http-healthcheck
+
+  identity:
+    <<: *node-service
+    command: ["node", "apps/identity/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+      WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
+      WEBAUTHN_ORIGIN: ${WEB_ORIGIN:?WEB_ORIGIN is required}
+      IDENTITY_SESSION_KEY: ${IDENTITY_SESSION_KEY:?IDENTITY_SESSION_KEY is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck: *http-healthcheck
+
+  model-gateway:
+    <<: *node-service
+    command: ["node", "apps/model-gateway/dist/server.js"]
+    environment:
+      HESTIA_ENV: home-prod
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: 3000
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL_FAST: ${OPENROUTER_MODEL_FAST:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      MODEL_GATEWAY_INTERNAL_TOKEN: ${MODEL_GATEWAY_INTERNAL_TOKEN:?MODEL_GATEWAY_INTERNAL_TOKEN is required}
+    healthcheck: *http-healthcheck
+
+  mcp-gateway:
+    <<: *node-service
+    command: ["node", "apps/mcp-gateway/dist/server.js"]
+    environment:
+      HESTIA_ENV: home-prod
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: 3000
+      MCP_BIND_ADDRESS: 0.0.0.0
+      MCP_ALLOWED_HOSTNAMES: mcp-gateway,localhost,127.0.0.1
+      MCP_ALLOWED_ORIGIN_HOSTNAMES: mcp-gateway,localhost,127.0.0.1
+      MCP_GATEWAY_AUTH_TOKEN: ${MCP_GATEWAY_AUTH_TOKEN:?MCP_GATEWAY_AUTH_TOKEN is required}
+      MCP_REQUEST_STATE_KEY: ${MCP_REQUEST_STATE_KEY:?MCP_REQUEST_STATE_KEY is required}
+      MCP_REQUEST_STATE_TTL_SECONDS: ${MCP_REQUEST_STATE_TTL_SECONDS:-300}
+    healthcheck: *http-healthcheck
+
+  policy-service:
+    <<: *node-service
+    command: ["node", "apps/policy-service/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck: *http-healthcheck
+
+  notification-service:
+    <<: *node-service
+    command: ["node", "apps/notification-service/dist/server.js"]
+    environment:
+      <<: *common-env
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck: *http-healthcheck
+
+  workers-automation:
+    <<: *node-service
+    command: ["node", "apps/workers-automation/dist/worker.js"]
+    environment:
+      <<: *common-env
+    depends_on:
+      temporal:
+        condition: service_started
+
+  workers-device-io:
+    <<: *node-service
+    command: ["node", "apps/workers-device-io/dist/worker.js"]
+    environment:
+      <<: *common-env
+      HA_BASE_URL: ${HA_BASE_URL:-}
+      HA_ACCESS_TOKEN: ${HA_ACCESS_TOKEN:-}
+    depends_on:
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+
+  workers-integrations:
+    <<: *node-service
+    command: ["node", "apps/workers-integrations/dist/worker.js"]
+    environment:
+      <<: *common-env
+    depends_on:
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+
+  workers-agent:
+    <<: *node-service
+    command: ["node", "apps/workers-agent/dist/worker.js"]
+    environment:
+      <<: *common-env
+    depends_on:
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+
+  workers-notifications:
+    <<: *node-service
+    command: ["node", "apps/workers-notifications/dist/worker.js"]
+    environment:
+      <<: *common-env
+    depends_on:
+      nats:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+
+  web:
+    image: hestia-web:${HESTIA_IMAGE_TAG:-local}
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+    init: true
+    restart: unless-stopped
+    ports:
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-5173}:8080"
+    depends_on:
+      edge-api:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - hestia
+
+networks:
+  hestia:
+    name: hestia-prod
+
+volumes:
+  postgres-data:
+  nats-data:
+  minio-data:

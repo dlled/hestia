@@ -1,0 +1,14 @@
+:root {
+  --hestia-bg: #161310;
+  --hestia-bg-elevated: #211c17;
+  --hestia-ink: #f3ebe1;
+  --hestia-muted: #b6a899;
+  --hestia-line: rgba(243, 235, 225, 0.12);
+  --hestia-ember: #c46b3a;
+  --hestia-ember-soft: rgba(196, 107, 58, 0.16);
+  --hestia-ok: #8faf6e;
+  --hestia-warn: #d4a24c;
+  --hestia-bad: #c45a4a;
+  --hestia-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  --hestia-sans: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+}

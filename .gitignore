@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.turbo/
+coverage/
+test-results/
+.playwright-cli/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+infra/compose/data/
+.pnpm-store/

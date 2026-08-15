@@ -1,0 +1,37 @@
+{
+  "name": "hestia",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-native, local-first home operating system",
+  "packageManager": "pnpm@10.33.2",
+  "type": "module",
+  "scripts": {
+    "dev": "node infra/scripts/dev.mjs",
+    "dev:apps": "turbo run dev --filter=@hestia/web --filter=@hestia/edge-api --filter=@hestia/home-core --filter=@hestia/integration-hub --filter=@hestia/workers-automation",
+    "build": "turbo run build",
+    "test": "pnpm build && turbo run test && pnpm test:infra && pnpm test:runtime",
+    "test:infra": "node infra/scripts/validate-container-contract.mjs && node infra/scripts/validate-intent-evals.mjs",
+    "test:evals:intent": "pnpm build && node infra/scripts/run-intent-evals.mjs",
+    "test:runtime": "node infra/scripts/runtime-smoke.mjs",
+    "test:blackbox:phase1": "node infra/scripts/phase1-blackbox.mjs",
+    "test:blackbox:phase2": "node infra/scripts/phase2-blackbox.mjs",
+    "test:blackbox:phase3": "node infra/scripts/phase3-blackbox.mjs",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "infra:up": "docker compose -f infra/compose/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/compose/docker-compose.yml down",
+    "infra:logs": "docker compose -f infra/compose/docker-compose.yml logs -f",
+    "db:migrate": "node infra/scripts/migrate.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.2",
+    "ws": "^8.18.3"
+  },
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  }
+}

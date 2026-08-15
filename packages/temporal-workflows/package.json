@@ -1,0 +1,32 @@
+{
+  "name": "@hestia/temporal-workflows",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./workflows": {
+      "types": "./src/workflows.ts",
+      "default": "./dist/workflows.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check src"
+  },
+  "dependencies": {
+    "@hestia/contracts": "workspace:*",
+    "@temporalio/workflow": "^1.22.0"
+  },
+  "devDependencies": {
+    "@temporalio/testing": "^1.22.0",
+    "@temporalio/worker": "^1.22.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
