@@ -1,6 +1,27 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalPassThroughEnv": ["FORCE_COLOR", "DATABASE_URL", "LOG_LEVEL", "NODE_ENV"],
+  "globalPassThroughEnv": [
+    "FORCE_COLOR",
+    "DATABASE_URL",
+    "LOG_LEVEL",
+    "NODE_ENV",
+    "HOME_ID",
+    "HA_BASE_URL",
+    "HA_INSTANCE_ID",
+    "NATS_URL",
+    "OPENROUTER_BASE_URL",
+    "OPENROUTER_MODEL_FAST",
+    "WEBAUTHN_RP_NAME",
+    "WEBAUTHN_RP_ID",
+    "WEBAUTHN_ORIGIN",
+    "MCP_ALLOWED_HOSTS",
+    "MCP_ALLOWED_ORIGINS",
+    "TEMPORAL_ADDRESS",
+    "TEMPORAL_NAMESPACE",
+    "TEMPORAL_TASK_QUEUE",
+    "TEMPORAL_AI_TASK_QUEUE",
+    "HESTIA_BASE_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

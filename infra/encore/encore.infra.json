@@ -1,0 +1,62 @@
+{
+  "$schema": "https://encore.dev/schemas/infra.schema.json",
+  "metadata": {
+    "app_id": "hestia",
+    "env_name": "self-hosted",
+    "env_type": "production",
+    "cloud": "self-hosted",
+    "base_url": "http://localhost:4000"
+  },
+  "sql_servers": [
+    {
+      "host": "postgres:5432",
+      "databases": {
+        "home_core": {
+          "name": "hestia_home_core",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "integration_hub": {
+          "name": "hestia_integration_hub",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "automation": {
+          "name": "hestia_automation",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "identity": {
+          "name": "hestia_identity",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "notifications": {
+          "name": "hestia_notifications",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "energy": {
+          "name": "hestia_energy",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        },
+        "mcp_gateway": {
+          "name": "hestia_mcp_gateway",
+          "username": "hestia",
+          "password": { "$env": "HESTIA_DB_PASSWORD" }
+        }
+      }
+    }
+  ],
+  "secrets": {
+    "IdentityBootstrapCode": { "$env": "IDENTITY_BOOTSTRAP_CODE" },
+    "HomeAssistantAccessToken": { "$env": "HOME_ASSISTANT_ACCESS_TOKEN" },
+    "OpenRouterApiKey": { "$env": "OPENROUTER_API_KEY" },
+    "McpReadAuthToken": { "$env": "MCP_READ_AUTH_TOKEN" },
+    "McpAutomationAuthToken": { "$env": "MCP_AUTOMATION_AUTH_TOKEN" },
+    "McpRequestStateKey": { "$env": "MCP_REQUEST_STATE_KEY" },
+    "IntegrationWebhookSigningKey": { "$env": "INTEGRATION_WEBHOOK_SIGNING_KEY" },
+    "WorkerServiceToken": { "$env": "WORKER_SERVICE_TOKEN" }
+  }
+}

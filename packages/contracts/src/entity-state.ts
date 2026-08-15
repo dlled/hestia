@@ -4,20 +4,30 @@ import { EventEnvelopeSchema } from "./events.js";
 import { AreaIdSchema, DeviceIdSchema, EntityIdSchema, HomeIdSchema } from "./ids.js";
 import { StateSnapshotSchema } from "./topology.js";
 
-export const ExternalEntityRefSchema = z.object({
-  system: z.literal("home_assistant"),
-  instanceId: z.string().min(1),
-  entityId: z.string().regex(/^[a-z0-9_]+\.[a-z0-9_]+$/u),
-});
+export const ExternalEntityRefSchema = z.discriminatedUnion("system", [
+  z.object({
+    system: z.literal("home_assistant"),
+    instanceId: z.string().min(1),
+    entityId: z.string().regex(/^[a-z0-9_]+\.[a-z0-9_]+$/u),
+  }),
+  z.object({
+    system: z.enum(["mqtt", "webhook", "virtual"]),
+    instanceId: z.string().min(1),
+    entityId: z
+      .string()
+      .min(1)
+      .regex(/^[a-zA-Z0-9_.:/-]+$/u),
+  }),
+]);
 
 export const ExternalAreaRefSchema = z.object({
-  system: z.literal("home_assistant"),
+  system: z.enum(["home_assistant", "mqtt", "webhook", "virtual"]),
   instanceId: z.string().min(1),
   areaId: z.string().min(1),
 });
 
 export const ExternalDeviceRefSchema = z.object({
-  system: z.literal("home_assistant"),
+  system: z.enum(["home_assistant", "mqtt", "webhook", "virtual"]),
   instanceId: z.string().min(1),
   deviceId: z.string().min(1),
 });

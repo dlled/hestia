@@ -1,0 +1,4626 @@
+{
+  "components": {
+    "responses": {
+      "APIError": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "externalDocs": {
+                "url": "https://pkg.go.dev/encore.dev/beta/errs#Error"
+              },
+              "properties": {
+                "code": {
+                  "description": "Error code",
+                  "example": "not_found",
+                  "externalDocs": {
+                    "url": "https://pkg.go.dev/encore.dev/beta/errs#ErrCode"
+                  },
+                  "type": "string"
+                },
+                "details": {
+                  "description": "Error details",
+                  "type": "object"
+                },
+                "message": {
+                  "description": "Error message",
+                  "type": "string"
+                }
+              },
+              "title": "APIError",
+              "type": "object"
+            }
+          }
+        },
+        "description": "Error response"
+      }
+    },
+    "schemas": {
+      "shared.ActionExecutionView": {
+        "properties": {
+          "actionId": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "type": "string"
+          },
+          "observedValue": {
+            "$ref": "#/components/schemas/shared.JsonScalarView"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/shared.PolicyDecisionView"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "approved",
+              "executing",
+              "confirmed",
+              "rejected",
+              "failed",
+              "compensated",
+              "skipped"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "actionId",
+          "commandId",
+          "status"
+        ],
+        "type": "object"
+      },
+      "shared.ActionPlanView": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/shared.ProposedActionView"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "planId",
+          "version",
+          "homeId",
+          "title",
+          "requestedBy",
+          "createdAt",
+          "actions",
+          "dryRun"
+        ],
+        "type": "object"
+      },
+      "shared.AreaView": {
+        "properties": {
+          "externalRef": {
+            "properties": {
+              "areaId": {
+                "type": "string"
+              },
+              "instanceId": {
+                "type": "string"
+              },
+              "system": {
+                "enum": [
+                  "home_assistant",
+                  "mqtt",
+                  "webhook",
+                  "virtual"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "system",
+              "instanceId",
+              "areaId"
+            ],
+            "type": "object"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "room",
+              "zone",
+              "floor",
+              "exterior",
+              "logical"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "homeId",
+          "name",
+          "kind",
+          "externalRef"
+        ],
+        "type": "object"
+      },
+      "shared.AutomationActionView": {
+        "properties": {
+          "capability": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/shared.JsonScalarView"
+            },
+            "type": "object"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/shared.RiskClassView"
+          }
+        },
+        "required": [
+          "capability",
+          "entityId",
+          "input",
+          "risk"
+        ],
+        "type": "object"
+      },
+      "shared.AutomationAuditEventView": {
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/shared.JsonScalarView"
+            },
+            "type": "object"
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "number"
+          },
+          "workflowId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence",
+          "eventId",
+          "workflowId",
+          "runId",
+          "planId",
+          "eventType",
+          "occurredAt",
+          "actor",
+          "details"
+        ],
+        "type": "object"
+      },
+      "shared.AutomationRunStateView": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/shared.ActionExecutionView"
+            },
+            "type": "array"
+          },
+          "approval": {
+            "properties": {
+              "approvalId": {
+                "type": "string"
+              },
+              "approved": {
+                "type": "boolean"
+              },
+              "decidedAt": {
+                "type": "string"
+              },
+              "decidedBy": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "approvalId",
+              "approved",
+              "decidedBy",
+              "decidedAt"
+            ],
+            "type": "object"
+          },
+          "currentAction": {
+            "type": "number"
+          },
+          "error": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "type": "string"
+          },
+          "pendingApprovalId": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "planId",
+          "status",
+          "currentAction",
+          "actions",
+          "startedAt"
+        ],
+        "type": "object"
+      },
+      "shared.CommandView": {
+        "properties": {
+          "capability": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string"
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/shared.JsonScalarView"
+            },
+            "type": "object"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/shared.RiskClassView"
+          },
+          "target": {
+            "properties": {
+              "areaId": {
+                "type": "string"
+              },
+              "entityId": {
+                "type": "string"
+              },
+              "homeId": {
+                "type": "string"
+              },
+              "selector": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "homeId"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "commandId",
+          "idempotencyKey",
+          "capability",
+          "target",
+          "input",
+          "risk",
+          "dryRun"
+        ],
+        "type": "object"
+      },
+      "shared.DeviceView": {
+        "properties": {
+          "areaId": {
+            "type": "string"
+          },
+          "externalRef": {
+            "properties": {
+              "deviceId": {
+                "type": "string"
+              },
+              "instanceId": {
+                "type": "string"
+              },
+              "system": {
+                "enum": [
+                  "home_assistant",
+                  "mqtt",
+                  "webhook",
+                  "virtual"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "system",
+              "instanceId",
+              "deviceId"
+            ],
+            "type": "object"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "manufacturer": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "homeId",
+          "name",
+          "integration",
+          "externalRef"
+        ],
+        "type": "object"
+      },
+      "shared.EntityView": {
+        "properties": {
+          "areaId": {
+            "type": "string"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "externalRef": {
+            "properties": {
+              "entityId": {
+                "type": "string"
+              },
+              "instanceId": {
+                "type": "string"
+              },
+              "system": {
+                "enum": [
+                  "home_assistant",
+                  "mqtt",
+                  "webhook",
+                  "virtual"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "system",
+              "instanceId",
+              "entityId"
+            ],
+            "type": "object"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "observedState": {
+            "$ref": "#/components/schemas/shared.ObservedStateView"
+          }
+        },
+        "required": [
+          "id",
+          "homeId",
+          "name",
+          "domain",
+          "capabilities",
+          "externalRef",
+          "observedState"
+        ],
+        "type": "object"
+      },
+      "shared.ExpectedObservationView": {
+        "properties": {
+          "attribute": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "equals": {
+            "$ref": "#/components/schemas/shared.JsonScalarView"
+          },
+          "timeoutMs": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "entityId",
+          "attribute",
+          "equals",
+          "timeoutMs"
+        ],
+        "type": "object"
+      },
+      "shared.IdentityRoleView": {
+        "enum": [
+          "Owner",
+          "Admin",
+          "Member",
+          "Guest",
+          "Service Account"
+        ],
+        "type": "string"
+      },
+      "shared.IncidentAuditView": {
+        "properties": {
+          "actor": {
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/shared.JsonScalarView"
+            },
+            "type": "object"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "incidentId": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sequence",
+          "incidentId",
+          "eventType",
+          "actor",
+          "occurredAt",
+          "details"
+        ],
+        "type": "object"
+      },
+      "shared.IncidentView": {
+        "properties": {
+          "acknowledgedAt": {
+            "type": "string"
+          },
+          "acknowledgedBy": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "dedupeKey": {
+            "type": "string"
+          },
+          "escalatedAt": {
+            "type": "string"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "incidentId": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "acknowledged",
+              "escalated",
+              "resolved"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "incidentId",
+          "homeId",
+          "dedupeKey",
+          "severity",
+          "status",
+          "title",
+          "body",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "shared.IntentInterpretationView": {
+        "properties": {
+          "confidence": {
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "sleep",
+              "unsupported"
+            ],
+            "type": "string"
+          },
+          "sleep": {
+            "properties": {
+              "armAlarm": {
+                "type": "boolean"
+              },
+              "climateTargetC": {
+                "type": "number"
+              },
+              "closeCovers": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "climateTargetC",
+              "closeCovers",
+              "armAlarm"
+            ],
+            "type": "object"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "confidence",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "shared.JsonScalarView": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "nullable": true,
+            "type": "boolean"
+          }
+        ],
+        "nullable": true
+      },
+      "shared.ObservedStateView": {
+        "properties": {
+          "quality": {
+            "$ref": "#/components/schemas/shared.StateQuality"
+          },
+          "source": {
+            "type": "string"
+          },
+          "staleAfterSec": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "timestamp",
+          "source",
+          "quality"
+        ],
+        "type": "object"
+      },
+      "shared.PolicyDecisionView": {
+        "properties": {
+          "approvalId": {
+            "type": "string"
+          },
+          "effect": {
+            "enum": [
+              "allow",
+              "deny",
+              "require_approval"
+            ],
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/shared.RiskClassView"
+          }
+        },
+        "required": [
+          "effect",
+          "risk",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "shared.ProposedActionView": {
+        "properties": {
+          "actionId": {
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/shared.CommandView"
+          },
+          "compensation": {
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/shared.CommandView"
+              },
+              "expectedObservation": {
+                "$ref": "#/components/schemas/shared.ExpectedObservationView"
+              }
+            },
+            "required": [
+              "command",
+              "expectedObservation"
+            ],
+            "type": "object"
+          },
+          "expectedObservation": {
+            "$ref": "#/components/schemas/shared.ExpectedObservationView"
+          }
+        },
+        "required": [
+          "actionId",
+          "command",
+          "expectedObservation"
+        ],
+        "type": "object"
+      },
+      "shared.RiskClassView": {
+        "enum": [
+          "R0",
+          "R1",
+          "R2",
+          "R3",
+          "R4"
+        ],
+        "type": "string"
+      },
+      "shared.SleepContextItemView": {
+        "properties": {
+          "areaId": {
+            "type": "string"
+          },
+          "attention": {
+            "enum": [
+              "ready",
+              "stale",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "observedState": {
+            "$ref": "#/components/schemas/shared.ObservedStateView"
+          }
+        },
+        "required": [
+          "entityId",
+          "name",
+          "domain",
+          "observedState",
+          "attention"
+        ],
+        "type": "object"
+      },
+      "shared.SleepPlanPreviewView": {
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/shared.ActionPlanView"
+          },
+          "skipped": {
+            "items": {
+              "properties": {
+                "entityId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "entityId",
+                "name",
+                "reason"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "plan",
+          "skipped"
+        ],
+        "type": "object"
+      },
+      "shared.StateQuality": {
+        "enum": [
+          "good",
+          "uncertain",
+          "stale",
+          "unavailable"
+        ],
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "Generated by encore",
+    "title": "API for 43gg8",
+    "version": "1",
+    "x-logo": {
+      "altText": "Encore logo",
+      "backgroundColor": "#EEEEE1",
+      "url": "https://encore.dev/assets/branding/logo/logo-black.png"
+    }
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/automations/drafts": {
+      "post": {
+        "operationId": "POST:edge.saveAutomationDraft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actions": {
+                    "items": {
+                      "$ref": "#/components/schemas/shared.AutomationActionView"
+                    },
+                    "type": "array"
+                  },
+                  "automationId": {
+                    "type": "string"
+                  },
+                  "budgets": {
+                    "properties": {
+                      "maxActionsPerRun": {
+                        "type": "number"
+                      },
+                      "maxRisk": {
+                        "$ref": "#/components/schemas/shared.RiskClassView"
+                      },
+                      "maxRunsPerHour": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "maxActionsPerRun",
+                      "maxRunsPerHour",
+                      "maxRisk"
+                    ],
+                    "type": "object"
+                  },
+                  "conditions": {
+                    "items": {
+                      "properties": {
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "operator": {
+                          "enum": [
+                            "eq",
+                            "neq",
+                            "gt",
+                            "gte",
+                            "lt",
+                            "lte"
+                          ],
+                          "type": "string"
+                        },
+                        "value": {
+                          "$ref": "#/components/schemas/shared.JsonScalarView"
+                        }
+                      },
+                      "required": [
+                        "entityId",
+                        "operator",
+                        "value"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "locks": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "mode": {
+                    "enum": [
+                      "shadow",
+                      "active"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "policyPromotionId": {
+                    "type": "string"
+                  },
+                  "rollback": {
+                    "enum": [
+                      "required",
+                      "best_effort",
+                      "none"
+                    ],
+                    "type": "string"
+                  },
+                  "shadowEvidenceId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "draft",
+                      "published",
+                      "retired"
+                    ],
+                    "type": "string"
+                  },
+                  "trigger": {
+                    "properties": {
+                      "entityId": {
+                        "type": "string"
+                      },
+                      "expression": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "enum": [
+                          "state",
+                          "schedule",
+                          "energy"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "expression"
+                    ],
+                    "type": "object"
+                  },
+                  "version": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "automationId",
+                  "version",
+                  "homeId",
+                  "name",
+                  "status",
+                  "mode",
+                  "trigger",
+                  "conditions",
+                  "actions",
+                  "budgets",
+                  "locks",
+                  "rollback",
+                  "createdAt"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AutomationActionView"
+                      },
+                      "type": "array"
+                    },
+                    "automationId": {
+                      "type": "string"
+                    },
+                    "budgets": {
+                      "properties": {
+                        "maxActionsPerRun": {
+                          "type": "number"
+                        },
+                        "maxRisk": {
+                          "$ref": "#/components/schemas/shared.RiskClassView"
+                        },
+                        "maxRunsPerHour": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "maxActionsPerRun",
+                        "maxRunsPerHour",
+                        "maxRisk"
+                      ],
+                      "type": "object"
+                    },
+                    "conditions": {
+                      "items": {
+                        "properties": {
+                          "entityId": {
+                            "type": "string"
+                          },
+                          "operator": {
+                            "enum": [
+                              "eq",
+                              "neq",
+                              "gt",
+                              "gte",
+                              "lt",
+                              "lte"
+                            ],
+                            "type": "string"
+                          },
+                          "value": {
+                            "$ref": "#/components/schemas/shared.JsonScalarView"
+                          }
+                        },
+                        "required": [
+                          "entityId",
+                          "operator",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "locks": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "mode": {
+                      "enum": [
+                        "shadow",
+                        "active"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "policyPromotionId": {
+                      "type": "string"
+                    },
+                    "rollback": {
+                      "enum": [
+                        "required",
+                        "best_effort",
+                        "none"
+                      ],
+                      "type": "string"
+                    },
+                    "shadowEvidenceId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "draft",
+                        "published",
+                        "retired"
+                      ],
+                      "type": "string"
+                    },
+                    "trigger": {
+                      "properties": {
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "expression": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "enum": [
+                            "state",
+                            "schedule",
+                            "energy"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "expression"
+                      ],
+                      "type": "object"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "automationId",
+                    "version",
+                    "homeId",
+                    "name",
+                    "status",
+                    "mode",
+                    "trigger",
+                    "conditions",
+                    "actions",
+                    "budgets",
+                    "locks",
+                    "rollback",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/versions/{version}": {
+      "get": {
+        "operationId": "GET:edge.getAutomationDefinition",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "automationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AutomationActionView"
+                      },
+                      "type": "array"
+                    },
+                    "automationId": {
+                      "type": "string"
+                    },
+                    "budgets": {
+                      "properties": {
+                        "maxActionsPerRun": {
+                          "type": "number"
+                        },
+                        "maxRisk": {
+                          "$ref": "#/components/schemas/shared.RiskClassView"
+                        },
+                        "maxRunsPerHour": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "maxActionsPerRun",
+                        "maxRunsPerHour",
+                        "maxRisk"
+                      ],
+                      "type": "object"
+                    },
+                    "conditions": {
+                      "items": {
+                        "properties": {
+                          "entityId": {
+                            "type": "string"
+                          },
+                          "operator": {
+                            "enum": [
+                              "eq",
+                              "neq",
+                              "gt",
+                              "gte",
+                              "lt",
+                              "lte"
+                            ],
+                            "type": "string"
+                          },
+                          "value": {
+                            "$ref": "#/components/schemas/shared.JsonScalarView"
+                          }
+                        },
+                        "required": [
+                          "entityId",
+                          "operator",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "locks": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "mode": {
+                      "enum": [
+                        "shadow",
+                        "active"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "policyPromotionId": {
+                      "type": "string"
+                    },
+                    "rollback": {
+                      "enum": [
+                        "required",
+                        "best_effort",
+                        "none"
+                      ],
+                      "type": "string"
+                    },
+                    "shadowEvidenceId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "draft",
+                        "published",
+                        "retired"
+                      ],
+                      "type": "string"
+                    },
+                    "trigger": {
+                      "properties": {
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "expression": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "enum": [
+                            "state",
+                            "schedule",
+                            "energy"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "expression"
+                      ],
+                      "type": "object"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "automationId",
+                    "version",
+                    "homeId",
+                    "name",
+                    "status",
+                    "mode",
+                    "trigger",
+                    "conditions",
+                    "actions",
+                    "budgets",
+                    "locks",
+                    "rollback",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/versions/{version}/publish": {
+      "post": {
+        "operationId": "POST:edge.publishAutomation",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "automationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AutomationActionView"
+                      },
+                      "type": "array"
+                    },
+                    "automationId": {
+                      "type": "string"
+                    },
+                    "budgets": {
+                      "properties": {
+                        "maxActionsPerRun": {
+                          "type": "number"
+                        },
+                        "maxRisk": {
+                          "$ref": "#/components/schemas/shared.RiskClassView"
+                        },
+                        "maxRunsPerHour": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "maxActionsPerRun",
+                        "maxRunsPerHour",
+                        "maxRisk"
+                      ],
+                      "type": "object"
+                    },
+                    "conditions": {
+                      "items": {
+                        "properties": {
+                          "entityId": {
+                            "type": "string"
+                          },
+                          "operator": {
+                            "enum": [
+                              "eq",
+                              "neq",
+                              "gt",
+                              "gte",
+                              "lt",
+                              "lte"
+                            ],
+                            "type": "string"
+                          },
+                          "value": {
+                            "$ref": "#/components/schemas/shared.JsonScalarView"
+                          }
+                        },
+                        "required": [
+                          "entityId",
+                          "operator",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "locks": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "mode": {
+                      "enum": [
+                        "shadow",
+                        "active"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "policyPromotionId": {
+                      "type": "string"
+                    },
+                    "rollback": {
+                      "enum": [
+                        "required",
+                        "best_effort",
+                        "none"
+                      ],
+                      "type": "string"
+                    },
+                    "shadowEvidenceId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "draft",
+                        "published",
+                        "retired"
+                      ],
+                      "type": "string"
+                    },
+                    "trigger": {
+                      "properties": {
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "expression": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "enum": [
+                            "state",
+                            "schedule",
+                            "energy"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "expression"
+                      ],
+                      "type": "object"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "automationId",
+                    "version",
+                    "homeId",
+                    "name",
+                    "status",
+                    "mode",
+                    "trigger",
+                    "conditions",
+                    "actions",
+                    "budgets",
+                    "locks",
+                    "rollback",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/automations/{automationId}/versions/{version}/simulate": {
+      "post": {
+        "operationId": "POST:edge.simulateAutomation",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "automationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "replayedAt": {
+                    "type": "string"
+                  },
+                  "snapshotJson": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "snapshotJson",
+                  "replayedAt"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "automationId": {
+                      "type": "string"
+                    },
+                    "blockedReasons": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "conditionsPassed": {
+                      "type": "boolean"
+                    },
+                    "effectful": {
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    },
+                    "proposedActions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AutomationActionView"
+                      },
+                      "type": "array"
+                    },
+                    "replayedAt": {
+                      "type": "string"
+                    },
+                    "triggered": {
+                      "type": "boolean"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "automationId",
+                    "version",
+                    "triggered",
+                    "conditionsPassed",
+                    "proposedActions",
+                    "blockedReasons",
+                    "effectful",
+                    "replayedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/energy/homes/{homeId}/recommendations": {
+      "post": {
+        "operationId": "POST:edge.createEnergyRecommendation",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "at": {
+                    "type": "string"
+                  },
+                  "flexibleEnergyKWh": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "flexibleEnergyKWh",
+                  "at"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "currency": {
+                      "type": "string"
+                    },
+                    "effectful": {
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    },
+                    "estimatedSavings": {
+                      "type": "number"
+                    },
+                    "generatedAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "rationale": {
+                      "type": "string"
+                    },
+                    "recommendationId": {
+                      "type": "string"
+                    },
+                    "suggestedStartAt": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "recommendationId",
+                    "homeId",
+                    "generatedAt",
+                    "title",
+                    "rationale",
+                    "suggestedStartAt",
+                    "estimatedSavings",
+                    "currency",
+                    "effectful"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/energy/readings": {
+      "post": {
+        "operationId": "POST:edge.ingestEnergyReading",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "energyKWh": {
+                    "type": "number"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "meterId": {
+                    "type": "string"
+                  },
+                  "observedAt": {
+                    "type": "string"
+                  },
+                  "powerW": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "homeId",
+                  "meterId",
+                  "observedAt",
+                  "powerW",
+                  "energyKWh"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "energyKWh": {
+                      "type": "number"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "meterId": {
+                      "type": "string"
+                    },
+                    "observedAt": {
+                      "type": "string"
+                    },
+                    "powerW": {
+                      "type": "number"
+                    },
+                    "readingId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "readingId",
+                    "homeId",
+                    "meterId",
+                    "observedAt",
+                    "powerW",
+                    "energyKWh"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/energy/tariffs": {
+      "post": {
+        "operationId": "POST:edge.putEnergyTariff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "currency": {
+                    "type": "string"
+                  },
+                  "endsAt": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "pricePerKWh": {
+                    "type": "number"
+                  },
+                  "startsAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "homeId",
+                  "startsAt",
+                  "endsAt",
+                  "pricePerKWh",
+                  "currency"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "currency": {
+                      "type": "string"
+                    },
+                    "endsAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "pricePerKWh": {
+                      "type": "number"
+                    },
+                    "startsAt": {
+                      "type": "string"
+                    },
+                    "tariffId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "tariffId",
+                    "homeId",
+                    "startsAt",
+                    "endsAt",
+                    "pricePerKWh",
+                    "currency"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/entities": {
+      "get": {
+        "operationId": "GET:edge.listHomeEntities",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "entities": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.EntityView"
+                      },
+                      "type": "array"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "entities"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/incidents": {
+      "get": {
+        "operationId": "GET:edge.listIncidents",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "incidents": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IncidentView"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "incidents"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/plans/sleep/preview": {
+      "post": {
+        "operationId": "POST:edge.previewSleepPlan",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "armAlarm": {
+                    "type": "boolean"
+                  },
+                  "climateTargetC": {
+                    "type": "number"
+                  },
+                  "closeCovers": {
+                    "type": "boolean"
+                  },
+                  "dryRun": {
+                    "type": "boolean"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "plan": {
+                      "$ref": "#/components/schemas/shared.ActionPlanView"
+                    },
+                    "skipped": {
+                      "items": {
+                        "properties": {
+                          "entityId": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "entityId",
+                          "name",
+                          "reason"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "plan",
+                    "skipped"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/sleep-context": {
+      "get": {
+        "operationId": "GET:edge.getSleepContext",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "categories": {
+                      "properties": {
+                        "alarm": {
+                          "items": {
+                            "$ref": "#/components/schemas/shared.SleepContextItemView"
+                          },
+                          "type": "array"
+                        },
+                        "climate": {
+                          "items": {
+                            "$ref": "#/components/schemas/shared.SleepContextItemView"
+                          },
+                          "type": "array"
+                        },
+                        "covers": {
+                          "items": {
+                            "$ref": "#/components/schemas/shared.SleepContextItemView"
+                          },
+                          "type": "array"
+                        },
+                        "lights": {
+                          "items": {
+                            "$ref": "#/components/schemas/shared.SleepContextItemView"
+                          },
+                          "type": "array"
+                        },
+                        "media": {
+                          "items": {
+                            "$ref": "#/components/schemas/shared.SleepContextItemView"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "lights",
+                        "climate",
+                        "covers",
+                        "media",
+                        "alarm"
+                      ],
+                      "type": "object"
+                    },
+                    "generatedAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "readiness": {
+                      "enum": [
+                        "ready",
+                        "degraded"
+                      ],
+                      "type": "string"
+                    },
+                    "summary": {
+                      "properties": {
+                        "relevant": {
+                          "type": "number"
+                        },
+                        "stale": {
+                          "type": "number"
+                        },
+                        "unavailable": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "relevant",
+                        "stale",
+                        "unavailable"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "generatedAt",
+                    "readiness",
+                    "summary",
+                    "categories"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/topology": {
+      "get": {
+        "operationId": "GET:edge.getHomeTopology",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "areas": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AreaView"
+                      },
+                      "type": "array"
+                    },
+                    "devices": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.DeviceView"
+                      },
+                      "type": "array"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "areas",
+                    "devices"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/authorize": {
+      "post": {
+        "operationId": "POST:edge.authorize",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "areaId": {
+                    "type": "string"
+                  },
+                  "capability": {
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "risk": {
+                    "$ref": "#/components/schemas/shared.RiskClassView"
+                  },
+                  "sessionToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sessionToken",
+                  "homeId"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "allowed": {
+                      "type": "boolean"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    }
+                  },
+                  "required": [
+                    "allowed",
+                    "reason"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/manifest": {
+      "get": {
+        "operationId": "GET:edge.identityManifest",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "authentication": {
+                      "items": {
+                        "enum": [
+                          "passkey",
+                          "local-recovery"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "bootstrap": {
+                      "enum": [
+                        "local-owner"
+                      ],
+                      "type": "string"
+                    },
+                    "roles": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentityRoleView"
+                      },
+                      "type": "array"
+                    },
+                    "scopeDimensions": {
+                      "items": {
+                        "enum": [
+                          "home",
+                          "area",
+                          "device",
+                          "capability",
+                          "time",
+                          "risk"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "serviceTokens": {
+                      "properties": {
+                        "expiring": {
+                          "enum": [
+                            true
+                          ],
+                          "type": "boolean"
+                        },
+                        "leastPrivilege": {
+                          "enum": [
+                            true
+                          ],
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "expiring",
+                        "leastPrivilege"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "bootstrap",
+                    "authentication",
+                    "roles",
+                    "scopeDimensions",
+                    "serviceTokens"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/authentication/options": {
+      "post": {
+        "operationId": "POST:edge.beginPasskeyAuthentication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "principalId": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "challengeId": {
+                      "type": "string"
+                    },
+                    "optionsJson": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "challengeId",
+                    "optionsJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/authentication/verify": {
+      "post": {
+        "operationId": "POST:edge.finishPasskeyAuthentication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "responseJson": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "responseJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sessionToken",
+                    "principalId",
+                    "role",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/guests/registration/options": {
+      "post": {
+        "operationId": "POST:edge.beginGuestPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "areaId": {
+                    "type": "string"
+                  },
+                  "capability": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "riskCeiling": {
+                    "enum": [
+                      "R0",
+                      "R1",
+                      "R2",
+                      "R3",
+                      "R4"
+                    ],
+                    "type": "string"
+                  },
+                  "sessionToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sessionToken",
+                  "displayName",
+                  "homeId",
+                  "riskCeiling",
+                  "expiresAt"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "challengeId": {
+                      "type": "string"
+                    },
+                    "optionsJson": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "principalId",
+                    "challengeId",
+                    "optionsJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/owner/registration/options": {
+      "post": {
+        "operationId": "POST:edge.beginOwnerPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "bootstrapCode": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "bootstrapCode"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "challengeId": {
+                      "type": "string"
+                    },
+                    "optionsJson": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "principalId",
+                    "challengeId",
+                    "optionsJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/owner/registration/verify": {
+      "post": {
+        "operationId": "POST:edge.finishOwnerPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "principalId": {
+                    "type": "string"
+                  },
+                  "responseJson": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "principalId",
+                  "challengeId",
+                  "responseJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sessionToken",
+                    "principalId",
+                    "role",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/recovery/codes": {
+      "post": {
+        "operationId": "POST:edge.createRecoveryCodes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "sessionToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "sessionToken"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "recoveryCodes": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "recoveryCodes"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/recovery/verify": {
+      "post": {
+        "operationId": "POST:edge.recoverOwner",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "principalId": {
+                    "type": "string"
+                  },
+                  "recoveryCode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "principalId",
+                  "recoveryCode"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sessionToken",
+                    "principalId",
+                    "role",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents": {
+      "post": {
+        "operationId": "POST:edge.createIncident",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "body": {
+                    "type": "string"
+                  },
+                  "dedupeKey": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "severity": {
+                    "enum": [
+                      "info",
+                      "warning",
+                      "critical"
+                    ],
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "homeId",
+                  "dedupeKey",
+                  "severity",
+                  "title",
+                  "body"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "deduplicated": {
+                      "type": "boolean"
+                    },
+                    "incident": {
+                      "$ref": "#/components/schemas/shared.IncidentView"
+                    }
+                  },
+                  "required": [
+                    "incident",
+                    "deduplicated"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incidentId}/acknowledge": {
+      "post": {
+        "operationId": "POST:edge.acknowledgeIncident",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "acknowledgedAt": {
+                      "type": "string"
+                    },
+                    "acknowledgedBy": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "dedupeKey": {
+                      "type": "string"
+                    },
+                    "escalatedAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "incidentId": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "enum": [
+                        "info",
+                        "warning",
+                        "critical"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "open",
+                        "acknowledged",
+                        "escalated",
+                        "resolved"
+                      ],
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "incidentId",
+                    "homeId",
+                    "dedupeKey",
+                    "severity",
+                    "status",
+                    "title",
+                    "body",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incidentId}/audit": {
+      "get": {
+        "operationId": "GET:edge.incidentAudit",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "events": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IncidentAuditView"
+                      },
+                      "type": "array"
+                    },
+                    "incidentId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "incidentId",
+                    "events"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incidentId}/escalate": {
+      "post": {
+        "operationId": "POST:edge.escalateIncident",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "acknowledgedAt": {
+                      "type": "string"
+                    },
+                    "acknowledgedBy": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "dedupeKey": {
+                      "type": "string"
+                    },
+                    "escalatedAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "incidentId": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "enum": [
+                        "info",
+                        "warning",
+                        "critical"
+                      ],
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "open",
+                        "acknowledged",
+                        "escalated",
+                        "resolved"
+                      ],
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "incidentId",
+                    "homeId",
+                    "dedupeKey",
+                    "severity",
+                    "status",
+                    "title",
+                    "body",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/home-assistant/status": {
+      "get": {
+        "operationId": "GET:edge.homeAssistantStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "discoveredAreas": {
+                      "type": "number"
+                    },
+                    "discoveredDevices": {
+                      "type": "number"
+                    },
+                    "discoveredEntities": {
+                      "type": "number"
+                    },
+                    "failureMessage": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "instanceId": {
+                      "type": "string"
+                    },
+                    "lastFailureAt": {
+                      "type": "string"
+                    },
+                    "lastSuccessfulSyncAt": {
+                      "type": "string"
+                    },
+                    "lastSyncCompletedAt": {
+                      "type": "string"
+                    },
+                    "lastSyncStartedAt": {
+                      "type": "string"
+                    },
+                    "rest": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "enum": [
+                        "ok",
+                        "degraded",
+                        "down"
+                      ],
+                      "type": "string"
+                    },
+                    "streaming": {
+                      "type": "boolean"
+                    },
+                    "system": {
+                      "enum": [
+                        "home_assistant"
+                      ],
+                      "type": "string"
+                    },
+                    "topology": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "system",
+                    "instanceId",
+                    "status",
+                    "rest",
+                    "streaming",
+                    "topology",
+                    "discoveredEntities",
+                    "discoveredAreas",
+                    "discoveredDevices"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/home-assistant/stream/start": {
+      "post": {
+        "operationId": "POST:edge.startHomeAssistantStream",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "streaming": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "streaming"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/home-assistant/stream/stop": {
+      "post": {
+        "operationId": "POST:edge.stopHomeAssistantStream",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "streaming": {
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "streaming"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/integrations/home-assistant/sync": {
+      "post": {
+        "operationId": "POST:edge.syncHomeAssistant",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "areas": {
+                      "type": "number"
+                    },
+                    "devices": {
+                      "type": "number"
+                    },
+                    "discovered": {
+                      "type": "number"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "published": {
+                      "type": "number"
+                    },
+                    "source": {
+                      "enum": [
+                        "home_assistant"
+                      ],
+                      "type": "string"
+                    },
+                    "syncedAt": {
+                      "type": "string"
+                    },
+                    "topology": {
+                      "enum": [
+                        "available",
+                        "degraded"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "homeId",
+                    "source",
+                    "discovered",
+                    "published",
+                    "areas",
+                    "devices",
+                    "topology",
+                    "syncedAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/intents/interpret": {
+      "post": {
+        "operationId": "POST:edge.interpretIntent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  },
+                  "utterance": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "utterance"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "confidence": {
+                      "type": "number"
+                    },
+                    "kind": {
+                      "enum": [
+                        "sleep",
+                        "unsupported"
+                      ],
+                      "type": "string"
+                    },
+                    "sleep": {
+                      "properties": {
+                        "armAlarm": {
+                          "type": "boolean"
+                        },
+                        "climateTargetC": {
+                          "type": "number"
+                        },
+                        "closeCovers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "climateTargetC",
+                        "closeCovers",
+                        "armAlarm"
+                      ],
+                      "type": "object"
+                    },
+                    "summary": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "confidence",
+                    "summary"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/intents/preview": {
+      "post": {
+        "operationId": "POST:edge.previewIntent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  },
+                  "utterance": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "utterance"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "interpretation": {
+                      "$ref": "#/components/schemas/shared.IntentInterpretationView"
+                    },
+                    "modelProfile": {
+                      "type": "string"
+                    },
+                    "preview": {
+                      "$ref": "#/components/schemas/shared.SleepPlanPreviewView"
+                    }
+                  },
+                  "required": [
+                    "interpretation",
+                    "modelProfile"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/intents/runs": {
+      "post": {
+        "operationId": "POST:edge.startIntentRun",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  },
+                  "utterance": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "utterance"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "runId": {
+                      "type": "string"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "runId"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/intents/runs/{workflowId}": {
+      "get": {
+        "operationId": "GET:edge.getIntentRun",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "attempt": {
+                      "type": "number"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "interpretation": {
+                      "$ref": "#/components/schemas/shared.IntentInterpretationView"
+                    },
+                    "preview": {
+                      "$ref": "#/components/schemas/shared.SleepPlanPreviewView"
+                    },
+                    "request": {
+                      "properties": {
+                        "requestedBy": {
+                          "type": "string"
+                        },
+                        "utterance": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "utterance",
+                        "requestedBy"
+                      ],
+                      "type": "object"
+                    },
+                    "status": {
+                      "enum": [
+                        "interpreting",
+                        "awaiting_clarification",
+                        "planning",
+                        "completed",
+                        "failed"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "request",
+                    "attempt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/intents/runs/{workflowId}/clarification": {
+      "post": {
+        "operationId": "POST:edge.clarifyIntentRun",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "providedBy": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "text",
+                  "providedBy"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/models/status": {
+      "get": {
+        "operationId": "GET:edge.modelGatewayStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "isolated": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    },
+                    "profile": {
+                      "enum": [
+                        "intent-fast"
+                      ],
+                      "type": "string"
+                    },
+                    "provider": {
+                      "enum": [
+                        "openrouter"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "provider",
+                    "profile",
+                    "isolated"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/plans": {
+      "post": {
+        "operationId": "POST:edge.publishAutomationPlan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actions": {
+                    "items": {
+                      "$ref": "#/components/schemas/shared.ProposedActionView"
+                    },
+                    "type": "array"
+                  },
+                  "createdAt": {
+                    "type": "string"
+                  },
+                  "dryRun": {
+                    "type": "boolean"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "planId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "planId",
+                  "version",
+                  "homeId",
+                  "title",
+                  "requestedBy",
+                  "createdAt",
+                  "actions",
+                  "dryRun"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.ProposedActionView"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "dryRun": {
+                      "type": "boolean"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "planId": {
+                      "type": "string"
+                    },
+                    "requestedBy": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "planId",
+                    "version",
+                    "homeId",
+                    "title",
+                    "requestedBy",
+                    "createdAt",
+                    "actions",
+                    "dryRun"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/plans/{planId}/versions/{version}": {
+      "get": {
+        "operationId": "GET:edge.getAutomationPlan",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "planId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.ProposedActionView"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "dryRun": {
+                      "type": "boolean"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "planId": {
+                      "type": "string"
+                    },
+                    "requestedBy": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "planId",
+                    "version",
+                    "homeId",
+                    "title",
+                    "requestedBy",
+                    "createdAt",
+                    "actions",
+                    "dryRun"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/plans/{planId}/versions/{version}/runs": {
+      "post": {
+        "operationId": "POST:edge.startAutomationPlan",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "planId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "requestedBy": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "planId": {
+                      "type": "string"
+                    },
+                    "runId": {
+                      "type": "string"
+                    },
+                    "startedAt": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "running"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "runId",
+                    "planId",
+                    "version",
+                    "startedAt",
+                    "status"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/policy/evaluate": {
+      "post": {
+        "operationId": "POST:edge.evaluatePolicy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "capability": {
+                    "type": "string"
+                  },
+                  "declaredRisk": {
+                    "$ref": "#/components/schemas/shared.RiskClassView"
+                  },
+                  "dryRun": {
+                    "type": "boolean"
+                  },
+                  "preauthorizedPlaybook": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "capability"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "approvalId": {
+                      "type": "string"
+                    },
+                    "effect": {
+                      "enum": [
+                        "allow",
+                        "deny",
+                        "require_approval"
+                      ],
+                      "type": "string"
+                    },
+                    "reasons": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "risk": {
+                      "$ref": "#/components/schemas/shared.RiskClassView"
+                    }
+                  },
+                  "required": [
+                    "effect",
+                    "risk",
+                    "reasons"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{workflowId}": {
+      "get": {
+        "operationId": "GET:edge.getAutomationRun",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "finishedAt": {
+                      "type": "string"
+                    },
+                    "planId": {
+                      "type": "string"
+                    },
+                    "runId": {
+                      "type": "string"
+                    },
+                    "startedAt": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "$ref": "#/components/schemas/shared.AutomationRunStateView"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "runId",
+                    "planId",
+                    "version",
+                    "startedAt",
+                    "status",
+                    "state"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{workflowId}/approval": {
+      "post": {
+        "operationId": "POST:edge.approveAutomationRun",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "approvalId": {
+                    "type": "string"
+                  },
+                  "approved": {
+                    "type": "boolean"
+                  },
+                  "decidedAt": {
+                    "type": "string"
+                  },
+                  "decidedBy": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "approvalId",
+                  "approved",
+                  "decidedBy",
+                  "decidedAt"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{workflowId}/audit": {
+      "get": {
+        "operationId": "GET:edge.getAutomationRunAudit",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "events": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.AutomationAuditEventView"
+                      },
+                      "type": "array"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "events"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{workflowId}/cancel": {
+      "post": {
+        "operationId": "POST:edge.cancelAutomationRun",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    },
+                    "workflowId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "workflowId",
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/temporal/status": {
+      "get": {
+        "operationId": "GET:edge.temporalStatus",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "engine": {
+                      "enum": [
+                        "temporal"
+                      ],
+                      "type": "string"
+                    },
+                    "ownership": {
+                      "enum": [
+                        "external"
+                      ],
+                      "type": "string"
+                    },
+                    "taskQueue": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "engine",
+                    "ownership",
+                    "taskQueue"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/integrations/webhooks/entity-state": {
+      "post": {
+        "operationId": "POST:integrationhub.ingestSignedEntityState",
+        "responses": {
+          "200": {
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/mcp": {
+      "post": {
+        "operationId": "POST:mcpgateway.mcp",
+        "responses": {
+          "200": {
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/intents/interpret": {
+      "post": {
+        "operationId": "POST:workerbridge.interpretIntent",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  },
+                  "utterance": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "utterance"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "confidence": {
+                      "type": "number"
+                    },
+                    "kind": {
+                      "enum": [
+                        "sleep",
+                        "unsupported"
+                      ],
+                      "type": "string"
+                    },
+                    "sleep": {
+                      "properties": {
+                        "armAlarm": {
+                          "type": "boolean"
+                        },
+                        "climateTargetC": {
+                          "type": "number"
+                        },
+                        "closeCovers": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "climateTargetC",
+                        "closeCovers",
+                        "armAlarm"
+                      ],
+                      "type": "object"
+                    },
+                    "summary": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "confidence",
+                    "summary"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/plans/sleep/preview": {
+      "post": {
+        "operationId": "POST:workerbridge.previewSleep",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "armAlarm": {
+                    "type": "boolean"
+                  },
+                  "climateTargetC": {
+                    "type": "number"
+                  },
+                  "closeCovers": {
+                    "type": "boolean"
+                  },
+                  "dryRun": {
+                    "type": "boolean"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "requestedBy": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "homeId"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "plan": {
+                      "$ref": "#/components/schemas/shared.ActionPlanView"
+                    },
+                    "skipped": {
+                      "items": {
+                        "properties": {
+                          "entityId": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "entityId",
+                          "name",
+                          "reason"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "plan",
+                    "skipped"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Encore local dev environment",
+      "url": "http://localhost:4000"
+    }
+  ]
+}

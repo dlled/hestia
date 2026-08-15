@@ -14,9 +14,10 @@ export async function interpretResidentIntent(
 ): Promise<IntentInterpretation> {
   const env = loadEnv();
   return request(
-    `${env.AI_ORCHESTRATOR_URL.replace(/\/$/u, "")}/api/v1/intents/interpret`,
+    `${env.AI_ORCHESTRATOR_URL.replace(/\/$/u, "")}/workers/v1/intents/interpret`,
     ResidentIntentRequestSchema.parse(input),
     IntentInterpretationSchema,
+    env.WORKER_SERVICE_TOKEN,
   );
 }
 
@@ -30,13 +31,14 @@ export async function previewInterpretedSleepIntent(input: {
     throw new Error("Only a validated sleep interpretation can be previewed");
   }
   return request(
-    `${env.AUTOMATION_SERVICE_URL.replace(/\/$/u, "")}/api/v1/plans/sleep/preview`,
+    `${env.AUTOMATION_SERVICE_URL.replace(/\/$/u, "")}/workers/v1/plans/sleep/preview`,
     SleepPlanPreviewRequestSchema.parse({
       ...interpretation.sleep,
       requestedBy: input.requestedBy,
       dryRun: false,
     }),
     SleepPlanPreviewSchema,
+    env.WORKER_SERVICE_TOKEN,
   );
 }
 
@@ -44,10 +46,11 @@ async function request<T>(
   url: string,
   body: unknown,
   schema: { parse(value: unknown): T },
+  serviceToken: string,
 ): Promise<T> {
   const response = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", authorization: `Bearer ${serviceToken}` },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(20_000),
   });

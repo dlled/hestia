@@ -92,6 +92,7 @@ const secretKeys = new Set([
   "IDENTITY_SESSION_KEY",
   "MCP_GATEWAY_AUTH_TOKEN",
   "MCP_REQUEST_STATE_KEY",
+  "WORKER_SERVICE_TOKEN",
 ]);
 
 for (const [relativePath, requiredKeys] of examples) {

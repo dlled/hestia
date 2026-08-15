@@ -1,0 +1,200 @@
+name: hestia-encore
+
+x-worker: &worker
+  build:
+    context: ../..
+    dockerfile: infra/encore/worker.Dockerfile
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: postgres
+      HESTIA_DB_PASSWORD: ${HESTIA_DB_PASSWORD:?set HESTIA_DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/001-create-databases.sh:/docker-entrypoint-initdb.d/001-create-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrations:
+    image: postgres:16-alpine
+    environment:
+      HESTIA_DB_PASSWORD: ${HESTIA_DB_PASSWORD:?set HESTIA_DB_PASSWORD}
+    volumes:
+      - ./postgres/run-migrations.sh:/migrations/run.sh:ro
+      - ../../backend/homecore/migrations:/migrations/homecore:ro
+      - ../../backend/integrationhub/migrations:/migrations/integrationhub:ro
+      - ../../backend/automation/migrations:/migrations/automation:ro
+      - ../../backend/identity/migrations:/migrations/identity:ro
+      - ../../backend/notifications/migrations:/migrations/notifications:ro
+      - ../../backend/energy/migrations:/migrations/energy:ro
+      - ../../backend/mcpgateway/migrations:/migrations/mcpgateway:ro
+    command: ["sh", "/migrations/run.sh"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  nats:
+    image: nats:2.11-alpine
+    command: ["--jetstream", "--store_dir", "/data", "--http_port", "8222"]
+    volumes: ["nats-data:/data"]
+    restart: unless-stopped
+
+  temporal:
+    image: temporalio/auto-setup:1.27.2
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_SEEDS: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PWD: ${POSTGRES_ADMIN_PASSWORD:?set POSTGRES_ADMIN_PASSWORD}
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/docker.yaml
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "temporal:7233"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  temporal-ui:
+    image: temporalio/ui:2.34.0
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:${TEMPORAL_UI_PORT:-8088}
+    ports: ["${TEMPORAL_UI_PORT:-8088}:8080"]
+    depends_on:
+      temporal: { condition: service_healthy }
+    restart: unless-stopped
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes: ["minio-data:/data"]
+    restart: unless-stopped
+
+  mqtt-credentials:
+    image: eclipse-mosquitto:2
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME:?set MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?set MQTT_PASSWORD}
+    volumes: ["mqtt-secrets:/mosquitto/secrets"]
+    entrypoint: ["sh", "-c"]
+    command: ["mosquitto_passwd -b -c /mosquitto/secrets/passwords \"$$MQTT_USERNAME\" \"$$MQTT_PASSWORD\""]
+    restart: "no"
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports: ["${MQTT_PORT:-1883}:1883"]
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+      - mqtt-secrets:/mosquitto/secrets:ro
+    depends_on:
+      mqtt-credentials: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+  hestia:
+    image: hestia-encore:local
+    environment:
+      HESTIA_DB_PASSWORD: ${HESTIA_DB_PASSWORD:?set HESTIA_DB_PASSWORD}
+      IDENTITY_BOOTSTRAP_CODE: ${IDENTITY_BOOTSTRAP_CODE:?set IDENTITY_BOOTSTRAP_CODE}
+      HOME_ASSISTANT_ACCESS_TOKEN: ${HOME_ASSISTANT_ACCESS_TOKEN:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      MCP_READ_AUTH_TOKEN: ${MCP_READ_AUTH_TOKEN:?set MCP_READ_AUTH_TOKEN}
+      MCP_AUTOMATION_AUTH_TOKEN: ${MCP_AUTOMATION_AUTH_TOKEN:?set MCP_AUTOMATION_AUTH_TOKEN}
+      MCP_REQUEST_STATE_KEY: ${MCP_REQUEST_STATE_KEY:?set MCP_REQUEST_STATE_KEY}
+      INTEGRATION_WEBHOOK_SIGNING_KEY: ${INTEGRATION_WEBHOOK_SIGNING_KEY:?set INTEGRATION_WEBHOOK_SIGNING_KEY}
+      WORKER_SERVICE_TOKEN: ${WORKER_SERVICE_TOKEN:?set WORKER_SERVICE_TOKEN}
+      WEBAUTHN_RP_NAME: ${WEBAUTHN_RP_NAME:-HESTIA}
+      WEBAUTHN_RP_ID: ${WEBAUTHN_RP_ID:-localhost}
+      WEBAUTHN_ORIGIN: ${WEBAUTHN_ORIGIN:-http://localhost:5173}
+      HA_BASE_URL: ${HA_BASE_URL:-http://host.docker.internal:8123}
+      HOME_ID: ${HOME_ID:-home_primary}
+      HA_INSTANCE_ID: ${HA_INSTANCE_ID:-ha_main}
+      NATS_URL: nats://nats:4222
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      TEMPORAL_TASK_QUEUE: hestia-automation
+      TEMPORAL_AI_TASK_QUEUE: hestia-ai
+      MCP_ALLOWED_HOSTS: localhost,127.0.0.1,hestia
+      MCP_ALLOWED_ORIGINS: localhost,127.0.0.1
+    ports: ["${HESTIA_HTTP_PORT:-4000}:8080"]
+    depends_on:
+      migrations: { condition: service_completed_successfully }
+      nats: { condition: service_started }
+      temporal: { condition: service_healthy }
+    restart: unless-stopped
+
+  automation-worker:
+    <<: *worker
+    command: ["node", "apps/workers-automation/dist/worker.js"]
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      TEMPORAL_TASK_QUEUE: hestia-automation
+    depends_on:
+      temporal: { condition: service_healthy }
+
+  agent-worker:
+    <<: *worker
+    command: ["node", "apps/workers-agent/dist/worker.js"]
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      AI_ORCHESTRATOR_URL: http://hestia:8080
+      AUTOMATION_SERVICE_URL: http://hestia:8080
+      WORKER_SERVICE_TOKEN: ${WORKER_SERVICE_TOKEN:?set WORKER_SERVICE_TOKEN}
+    depends_on:
+      temporal: { condition: service_healthy }
+
+  device-worker:
+    <<: *worker
+    command: ["node", "apps/workers-device-io/dist/worker.js"]
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      HOME_CORE_URL: http://hestia:8080
+      HA_BASE_URL: ${HA_BASE_URL:-http://host.docker.internal:8123}
+      HA_ACCESS_TOKEN: ${HOME_ASSISTANT_ACCESS_TOKEN:-}
+    depends_on:
+      temporal: { condition: service_healthy }
+      hestia: { condition: service_started }
+
+  mqtt-worker:
+    <<: *worker
+    command: ["node", "apps/workers-mqtt/dist/worker.js"]
+    environment:
+      MQTT_URL: mqtt://mqtt:1883
+      MQTT_CLIENT_ID: hestia-mqtt-bridge
+      MQTT_TOPIC: hestia/+/entity/+/state
+      MQTT_USERNAME: ${MQTT_USERNAME:?set MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?set MQTT_PASSWORD}
+      HESTIA_WEBHOOK_URL: http://hestia:8080/integrations/webhooks/entity-state
+      HESTIA_WEBHOOK_SIGNING_KEY: ${INTEGRATION_WEBHOOK_SIGNING_KEY:?set INTEGRATION_WEBHOOK_SIGNING_KEY}
+    depends_on:
+      mqtt: { condition: service_started }
+      hestia: { condition: service_started }
+
+volumes:
+  postgres-data:
+  nats-data:
+  minio-data:
+  mqtt-data:
+  mqtt-secrets:

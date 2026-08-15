@@ -12,3 +12,6 @@ test-results/
 *.log
 infra/compose/data/
 .pnpm-store/
+.encore/
+encore.gen/
+.secrets.local.cue

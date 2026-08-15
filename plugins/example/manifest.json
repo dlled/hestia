@@ -1,0 +1,12 @@
+{
+  "id": "example-weather",
+  "name": "Example weather",
+  "version": "1.0.0",
+  "apiVersion": "1",
+  "entrypoint": "dist/plugin.js",
+  "permissions": {
+    "filesystem": "none",
+    "network": [],
+    "capabilities": ["sensor.read"]
+  }
+}

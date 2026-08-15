@@ -18,6 +18,9 @@
       "**",
       "!**/dist",
       "!**/node_modules",
+      "!**/.encore",
+      "!encore.gen",
+      "!sdk",
       "!**/.turbo",
       "!**/test-results",
       "!infra/scripts"

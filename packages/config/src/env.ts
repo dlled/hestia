@@ -19,6 +19,7 @@ export const AppEnvSchema = z.object({
   TEMPORAL_ADDRESS: z.string().default("localhost:7233"),
   TEMPORAL_NAMESPACE: z.string().default("default"),
   TEMPORAL_TASK_QUEUE: z.string().default("hestia-automation"),
+  WORKER_SERVICE_TOKEN: z.string().default(""),
 });
 
 export type AppEnv = z.infer<typeof AppEnvSchema>;

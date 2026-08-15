@@ -17,3 +17,6 @@ test-results
 *.log
 .DS_Store
 docs/source
+.encore
+encore.gen
+.secrets.local.cue

@@ -9,7 +9,8 @@
     "dev": "node infra/scripts/dev.mjs",
     "dev:apps": "turbo run dev --filter=@hestia/web --filter=@hestia/edge-api --filter=@hestia/home-core --filter=@hestia/integration-hub --filter=@hestia/workers-automation",
     "build": "turbo run build",
-    "test": "pnpm build && turbo run test && pnpm test:infra && pnpm test:runtime",
+    "test": "pnpm build && turbo run test && node infra/scripts/run-encore-tests-if-ready.mjs && pnpm test:infra && pnpm test:runtime",
+    "test:encore-services": "vitest run --config vitest.encore.config.ts",
     "test:infra": "node infra/scripts/validate-container-contract.mjs && node infra/scripts/validate-intent-evals.mjs",
     "test:evals:intent": "pnpm build && node infra/scripts/run-intent-evals.mjs",
     "test:runtime": "node infra/scripts/runtime-smoke.mjs",
@@ -22,16 +23,46 @@
     "infra:up": "docker compose -f infra/compose/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/compose/docker-compose.yml down",
     "infra:logs": "docker compose -f infra/compose/docker-compose.yml logs -f",
-    "db:migrate": "node infra/scripts/migrate.mjs"
+    "db:migrate": "node infra/scripts/migrate.mjs",
+    "encore:dev": "encore run",
+    "encore:check": "encore check",
+    "encore:test": "encore test",
+    "encore:test:blackbox": "node infra/encore/scripts/blackbox.mjs",
+    "encore:build:selfhost": "sh infra/encore/scripts/build-selfhost.sh",
+    "sdk:generate": "encore gen client --lang typescript --output sdk/client.ts && encore gen client --lang openapi --openapi-exclude-private-endpoints --output sdk/openapi.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@types/node": "^24.13.3",
     "turbo": "^2.5.8",
     "typescript": "^5.9.2",
+    "vitest": "^3.2.7",
     "ws": "^8.18.3"
   },
   "engines": {
     "node": ">=24",
     "pnpm": ">=10"
+  },
+  "dependencies": {
+    "@hestia/contracts": "workspace:*",
+    "@hestia/domain": "workspace:*",
+    "@hestia/event-bus": "workspace:*",
+    "@hestia/ha-client": "workspace:*",
+    "@hestia/model-client": "workspace:*",
+    "@hestia/policy": "workspace:*",
+    "@hestia/temporal-activities": "workspace:*",
+    "@hestia/temporal-workflows": "workspace:*",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@nats-io/jetstream": "^3.4.0",
+    "@nats-io/transport-node": "^3.4.0",
+    "@simplewebauthn/server": "^13.3.2",
+    "@temporalio/activity": "^1.22.0",
+    "@temporalio/client": "^1.22.0",
+    "@temporalio/worker": "^1.22.0",
+    "@temporalio/workflow": "^1.22.0",
+    "encore.dev": "^1.58.1",
+    "mqtt": "^5.15.2",
+    "zod": "^4.4.3"
   }
 }
