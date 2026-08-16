@@ -4,6 +4,9 @@ import {
   AgentIntentStateSchema,
   ApprovalDecisionSchema,
   AutomationRunStateSchema,
+  IncidentAcknowledgementSchema,
+  IncidentResolutionSchema,
+  IncidentWorkflowStateSchema,
   ResidentIntentRequestSchema,
 } from "@hestia/contracts";
 import { Client, Connection } from "@temporalio/client";
@@ -123,6 +126,50 @@ export const clarifyAgentIntent = api(
     await (await temporalClient()).workflow
       .getHandle(workflowId)
       .signal("agentClarification", clarification);
+    return { accepted: true };
+  },
+);
+
+export const incidentWorkflowState = api(
+  { method: "GET", path: "/internal/temporal/incidents/:workflowId" },
+  async ({ workflowId }: { workflowId: string }): Promise<{ stateJson: string }> => {
+    const state = await (await temporalClient()).workflow
+      .getHandle(workflowId)
+      .query("incidentState");
+    return { stateJson: JSON.stringify(IncidentWorkflowStateSchema.parse(state)) };
+  },
+);
+
+export const acknowledgeIncidentWorkflow = api(
+  { method: "POST", path: "/internal/temporal/incidents/:workflowId/acknowledge" },
+  async ({
+    workflowId,
+    acknowledgementJson,
+  }: {
+    workflowId: string;
+    acknowledgementJson: string;
+  }): Promise<{ accepted: true }> => {
+    const acknowledgement = IncidentAcknowledgementSchema.parse(JSON.parse(acknowledgementJson));
+    await (await temporalClient()).workflow
+      .getHandle(workflowId)
+      .signal("incidentAcknowledged", acknowledgement);
+    return { accepted: true };
+  },
+);
+
+export const resolveIncidentWorkflow = api(
+  { method: "POST", path: "/internal/temporal/incidents/:workflowId/resolve" },
+  async ({
+    workflowId,
+    resolutionJson,
+  }: {
+    workflowId: string;
+    resolutionJson: string;
+  }): Promise<{ accepted: true }> => {
+    const resolution = IncidentResolutionSchema.parse(JSON.parse(resolutionJson));
+    await (await temporalClient()).workflow
+      .getHandle(workflowId)
+      .signal("incidentResolved", resolution);
     return { accepted: true };
   },
 );

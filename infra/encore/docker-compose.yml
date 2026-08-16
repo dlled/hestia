@@ -96,7 +96,13 @@ services:
       MQTT_PASSWORD: ${MQTT_PASSWORD:?set MQTT_PASSWORD}
     volumes: ["mqtt-secrets:/mosquitto/secrets"]
     entrypoint: ["sh", "-c"]
-    command: ["mosquitto_passwd -b -c /mosquitto/secrets/passwords \"$$MQTT_USERNAME\" \"$$MQTT_PASSWORD\""]
+    command:
+      - >-
+        if [ -f /mosquitto/secrets/passwords ]; then
+          mosquitto_passwd -b /mosquitto/secrets/passwords "$$MQTT_USERNAME" "$$MQTT_PASSWORD";
+        else
+          mosquitto_passwd -b -c /mosquitto/secrets/passwords "$$MQTT_USERNAME" "$$MQTT_PASSWORD";
+        fi
     restart: "no"
 
   mqtt:
@@ -175,6 +181,22 @@ services:
       HA_ACCESS_TOKEN: ${HOME_ASSISTANT_ACCESS_TOKEN:-}
     depends_on:
       temporal: { condition: service_healthy }
+      hestia: { condition: service_started }
+
+  notifications-worker:
+    <<: *worker
+    command: ["node", "apps/workers-notifications/dist/worker.js"]
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      NATS_URL: nats://nats:4222
+      HESTIA_WORKER_API_URL: http://hestia:8080
+      WORKER_SERVICE_TOKEN: ${WORKER_SERVICE_TOKEN:?set WORKER_SERVICE_TOKEN}
+      INCIDENT_EXTERNAL_WEBHOOK_URL: ${INCIDENT_EXTERNAL_WEBHOOK_URL:-}
+      INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY: ${INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY:-}
+    depends_on:
+      temporal: { condition: service_healthy }
+      nats: { condition: service_started }
       hestia: { condition: service_started }
 
   mqtt-worker:

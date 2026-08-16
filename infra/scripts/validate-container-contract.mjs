@@ -70,7 +70,15 @@ const examples = new Map([
   ["apps/workers-agent/.env.example", ["NATS_URL", "TEMPORAL_ADDRESS"]],
   [
     "apps/workers-notifications/.env.example",
-    ["NATS_URL", "TEMPORAL_ADDRESS", "TEMPORAL_TASK_QUEUE"],
+    [
+      "NATS_URL",
+      "TEMPORAL_ADDRESS",
+      "TEMPORAL_TASK_QUEUE",
+      "HESTIA_WORKER_API_URL",
+      "WORKER_SERVICE_TOKEN",
+      "INCIDENT_EXTERNAL_WEBHOOK_URL",
+      "INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY",
+    ],
   ],
   [
     "infra/compose/.env.example",
@@ -93,6 +101,7 @@ const secretKeys = new Set([
   "MCP_GATEWAY_AUTH_TOKEN",
   "MCP_REQUEST_STATE_KEY",
   "WORKER_SERVICE_TOKEN",
+  "INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY",
 ]);
 
 for (const [relativePath, requiredKeys] of examples) {

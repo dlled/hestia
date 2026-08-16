@@ -4,7 +4,7 @@ Local-first home operating system. A person states an intent; HESTIA reads conte
 
 Thesis: **probabilistic intelligence above; deterministic execution below.**
 
-This repository is a TypeScript monorepo. Phases 0–2 and the first Phase 3 vertical are implemented: Home Assistant state is materialized through JetStream and PostgreSQL, and natural-language sleep intent becomes a durable, resumable, policy-controlled Temporal workflow with observed-state verification. The deployment skeleton now contains every service boundary from the source architecture, including identity, provider isolation, notifications, and a stateless MCP 2026-07-28 gateway.
+This repository is a TypeScript monorepo with a native Encore.ts backend. Home Assistant state is materialized through JetStream and PostgreSQL; natural-language sleep intent becomes a durable, policy-controlled Temporal workflow; and moisture observations now drive the SC-02 leak-incident workflow with constrained mitigation, acknowledgement, escalation, compensation and explicit closure. Identity, provider isolation and the stateless MCP 2026-07-28 gateway remain separate boundaries.
 
 ## Stack
 
@@ -12,7 +12,7 @@ This repository is a TypeScript monorepo. Phases 0–2 and the first Phase 3 ver
 | --- | --- |
 | Runtime | Node.js 24+, TypeScript strict, pnpm workspaces, Turborepo |
 | Web | React 19 + Vite 8 |
-| HTTP | Express 5 (BFF + domain services) |
+| HTTP | Encore.ts native services and generated service clients |
 | Orchestration | Temporal TypeScript |
 | Events | NATS JetStream |
 | Data | PostgreSQL (one cluster, schema-per-service) + MinIO |
@@ -73,10 +73,12 @@ infra/         compose, migrations, scripts
 docs/          ADRs, runbooks, product notes
 ```
 
-## Current vertical
+## Current verticals
 
 The **“I'm going to sleep”** vertical accepts natural language or explicit options, previews a typed plan for lights, climate, covers, media, and alarm, requests selective approval, executes through a dedicated device worker, and exposes an audit trail.
 
-Implementation evidence is tracked in [Connected home](docs/product/phase-1-connected-home.md), [Durable automation](docs/product/phase-2-durable-automation.md), and [Agentic control](docs/product/phase-3-agentic-control.md).
+The **SC-02 leak incident** vertical consumes canonical moisture observations, starts a stable Temporal workflow, applies a versioned preauthorized playbook, records local and optional signed external notification delivery, escalates on a durable timer and remains open until explicit resolution.
+
+Implementation evidence is tracked in [Connected home](docs/product/phase-1-connected-home.md), [Durable automation](docs/product/phase-2-durable-automation.md), [Agentic control](docs/product/phase-3-agentic-control.md), and [Leak incident response](docs/product/phase-3b-leak-incidents.md).
 
 The remaining proof-of-concept work and requirement status are tracked in the [development plan](docs/product/proof-of-concept-plan.md) and [requirements coverage matrix](docs/product/requirements-coverage.md).

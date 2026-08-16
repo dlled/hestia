@@ -50,6 +50,7 @@ export interface TwinEntity {
   areaId?: string;
   name: string;
   domain: string;
+  deviceClass?: string;
   capabilities: string[];
   externalRef: {
     system: "home_assistant";
@@ -198,6 +199,38 @@ export interface AutomationAudit {
     eventType: string;
     occurredAt: string;
     actor: string;
+    details: Record<string, unknown>;
+  }>;
+}
+
+export interface Incident {
+  incidentId: string;
+  homeId: string;
+  dedupeKey: string;
+  severity: "info" | "warning" | "critical";
+  status: "open" | "acknowledged" | "mitigated" | "monitoring" | "resolved" | "false_positive";
+  title: string;
+  body: string;
+  createdAt: string;
+  workflowId?: string;
+  playbookId?: string;
+  playbookVersion?: number;
+  sourceEventId?: string;
+  requiredAck: boolean;
+  escalationStep: number;
+  acknowledgedAt?: string;
+  escalatedAt?: string;
+  resolvedAt?: string;
+  resolutionNote?: string;
+}
+
+export interface IncidentAudit {
+  incidentId: string;
+  events: Array<{
+    sequence: number;
+    eventType: string;
+    actor: string;
+    occurredAt: string;
     details: Record<string, unknown>;
   }>;
 }

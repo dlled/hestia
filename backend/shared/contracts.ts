@@ -16,6 +16,7 @@ export interface EntityView {
   areaId?: string;
   name: string;
   domain: string;
+  deviceClass?: string;
   capabilities: string[];
   externalRef: {
     system: "home_assistant" | "mqtt" | "webhook" | "virtual";
@@ -339,13 +340,48 @@ export interface IncidentView {
   homeId: string;
   dedupeKey: string;
   severity: "info" | "warning" | "critical";
-  status: "open" | "acknowledged" | "escalated" | "resolved";
+  status: "open" | "acknowledged" | "mitigated" | "monitoring" | "resolved" | "false_positive";
   title: string;
   body: string;
   createdAt: string;
+  workflowId?: string;
+  playbookId?: string;
+  playbookVersion?: number;
+  sourceEventId?: string;
+  requiredAck: boolean;
+  escalationStep: number;
+  ttlExpiresAt?: string;
   acknowledgedAt?: string;
   acknowledgedBy?: string;
   escalatedAt?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  resolutionNote?: string;
+}
+
+export interface LeakPlaybookView {
+  playbookId: string;
+  version: number;
+  homeId: string;
+  name: string;
+  status: "draft" | "published" | "retired";
+  triggerDeviceClass: "moisture";
+  preauthorized: true;
+  mode: "active" | "test";
+  acknowledgementTimeoutMs: number;
+  actions: IncidentPlaybookActionView[];
+  createdAt: string;
+  publishedAt?: string;
+}
+
+export interface IncidentPlaybookActionView {
+  actionId: string;
+  command: CommandView;
+  expectedObservation: ExpectedObservationView;
+  compensation?: {
+    command: CommandView;
+    expectedObservation: ExpectedObservationView;
+  };
 }
 
 export interface IncidentAuditView {

@@ -29,6 +29,7 @@ A person expresses an intent. HESTIA understands context, proposes a visible pla
 - [Phase 1 — Connected home](./phase-1-connected-home.md)
 - [Phase 2 — Durable automation](./phase-2-durable-automation.md)
 - [Phase 3 — Agentic control](./phase-3-agentic-control.md)
+- [Phase 3B — Leak incident response](./phase-3b-leak-incidents.md)
 
 ## Delivery control
 

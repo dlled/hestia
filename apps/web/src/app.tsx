@@ -9,6 +9,8 @@ import {
   type Health,
   type HomeAssistantSyncResult,
   type HomeTopology,
+  type Incident,
+  type IncidentAudit,
   type IntegrationCheckpoint,
   type IntentPlanPreview,
   type Meta,
@@ -38,6 +40,8 @@ export function App(): React.JSX.Element {
   const [climateTargetC, setClimateTargetC] = useState(18);
   const [armAlarm, setArmAlarm] = useState(false);
   const [sync, setSync] = useState<HomeAssistantSyncResult | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidentAudits, setIncidentAudits] = useState<Record<string, IncidentAudit>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +54,7 @@ export function App(): React.JSX.Element {
       getJson<HomeTopology>("/api/v1/home/topology"),
       getJson<IntegrationCheckpoint>("/api/v1/home/integration-status"),
       getJson<SleepContext>("/api/v1/home/contexts/sleep"),
+      getJson<{ incidents: Incident[] }>("/api/v1/homes/home_primary/incidents"),
     ])
       .then(
         ([
@@ -60,6 +65,7 @@ export function App(): React.JSX.Element {
           nextTopology,
           nextIntegration,
           nextSleepContext,
+          nextIncidents,
         ]) => {
           setMeta(nextMeta);
           setHealth(nextHealth);
@@ -68,12 +74,57 @@ export function App(): React.JSX.Element {
           setTopology(nextTopology);
           setIntegration(nextIntegration);
           setSleepContext(nextSleepContext);
+          setIncidents(nextIncidents.incidents);
         },
       )
       .catch((reason: unknown) => {
         setError(reason instanceof Error ? reason.message : "edge-api is unreachable");
       });
   }, []);
+
+  async function refreshIncidents(): Promise<void> {
+    const result = await getJson<{ incidents: Incident[] }>("/api/v1/homes/home_primary/incidents");
+    setIncidents(result.incidents);
+  }
+
+  async function showIncidentTimeline(incidentId: string): Promise<void> {
+    setError(null);
+    try {
+      const audit = await getJson<IncidentAudit>(`/api/v1/incidents/${incidentId}/audit`);
+      setIncidentAudits((current) => ({ ...current, [incidentId]: audit }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "incident timeline failed");
+    }
+  }
+
+  async function acknowledgeIncident(incidentId: string): Promise<void> {
+    setBusy(true);
+    setError(null);
+    try {
+      await postJson(`/api/v1/incidents/${incidentId}/acknowledge`, {});
+      await Promise.all([refreshIncidents(), showIncidentTimeline(incidentId)]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "incident acknowledgement failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resolveIncident(incidentId: string, status: "resolved" | "false_positive") {
+    setBusy(true);
+    setError(null);
+    try {
+      await postJson(`/api/v1/incidents/${incidentId}/resolve`, {
+        status,
+        note: status === "resolved" ? "Resolved from Incident Center" : "Marked false positive",
+      });
+      await Promise.all([refreshIncidents(), showIncidentTimeline(incidentId)]);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "incident resolution failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function syncHome(): Promise<void> {
     setBusy(true);
@@ -591,6 +642,86 @@ export function App(): React.JSX.Element {
           ) : null}
         </section>
 
+        <section className="incidents" aria-labelledby="incidents-title">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">Phase 3 · Incident response</p>
+              <h2 id="incidents-title">Incident Center</h2>
+            </div>
+            <span className={`pill ${incidents.some(activeIncident) ? "warn" : "ok"}`}>
+              {incidents.filter(activeIncident).length} active
+            </span>
+          </div>
+          {incidents.length === 0 ? (
+            <p>No incidents recorded.</p>
+          ) : (
+            <ol className="incident-list">
+              {incidents.map((incident) => (
+                <li className={`incident ${incident.severity}`} key={incident.incidentId}>
+                  <div className="entity-head">
+                    <h3>{incident.title}</h3>
+                    <span className="mono">{incident.status}</span>
+                  </div>
+                  <p>{incident.body}</p>
+                  <small>
+                    {incident.severity} · escalation {incident.escalationStep} · playbook{" "}
+                    {incident.playbookVersion ?? "manual"}
+                  </small>
+                  <div className="actions">
+                    <button
+                      className="secondary"
+                      type="button"
+                      onClick={() => void showIncidentTimeline(incident.incidentId)}
+                    >
+                      Show timeline
+                    </button>
+                    {incident.requiredAck && !incident.acknowledgedAt ? (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void acknowledgeIncident(incident.incidentId)}
+                      >
+                        Acknowledge incident
+                      </button>
+                    ) : null}
+                    {activeIncident(incident) ? (
+                      <>
+                        <button
+                          className="secondary"
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void resolveIncident(incident.incidentId, "resolved")}
+                        >
+                          Resolve incident
+                        </button>
+                        <button
+                          className="secondary"
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            void resolveIncident(incident.incidentId, "false_positive")
+                          }
+                        >
+                          Mark false positive
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                  {incidentAudits[incident.incidentId] ? (
+                    <ol className="incident-timeline">
+                      {incidentAudits[incident.incidentId]?.events.map((event) => (
+                        <li key={event.sequence}>
+                          {event.eventType} · {event.actor}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
         <aside className="rail">
           <section>
             <h2>Lanes</h2>
@@ -627,4 +758,8 @@ function terminal(status: string): boolean {
   return ["completed", "rejected", "failed", "compensated", "cancelled", "timed_out"].includes(
     status,
   );
+}
+
+function activeIncident(incident: Incident): boolean {
+  return !["resolved", "false_positive"].includes(incident.status);
 }

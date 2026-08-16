@@ -30,6 +30,13 @@ const definitions: CapabilityDefinition[] = [
     "R2",
     "idempotent",
   ),
+  def(
+    "valve.setOpen",
+    "Set valve state",
+    "Open or close a water, gas, or process valve.",
+    "R3",
+    "idempotent",
+  ),
   def("lock.lock", "Lock", "Lock a door or gate.", "R3", "idempotent"),
   def("lock.unlock", "Unlock", "Unlock a door or gate.", "R3", "at_most_once"),
   def("security.arm", "Arm security", "Arm an alarm panel.", "R3", "idempotent"),

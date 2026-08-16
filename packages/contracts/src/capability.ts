@@ -9,6 +9,7 @@ export const CapabilityIdSchema = z.enum([
   "climate.setTarget",
   "climate.setMode",
   "cover.setPosition",
+  "valve.setOpen",
   "lock.lock",
   "lock.unlock",
   "security.arm",

@@ -188,6 +188,40 @@ describe("App", () => {
             },
           });
         }
+        if (url.includes("/api/v1/homes/home_primary/incidents")) {
+          return json({
+            homeId: "home_primary",
+            incidents: [
+              {
+                incidentId: "inc_ui_leak_001",
+                homeId: "home_primary",
+                dedupeKey: "leak:utility-room",
+                severity: "critical",
+                status: "monitoring",
+                title: "Moisture detected",
+                body: "Utility room leak sensor reports moisture",
+                createdAt: "2026-08-16T10:00:00.000Z",
+                requiredAck: true,
+                escalationStep: 1,
+                playbookVersion: 2,
+              },
+            ],
+          });
+        }
+        if (url.includes("/api/v1/incidents/inc_ui_leak_001/audit")) {
+          return json({
+            incidentId: "inc_ui_leak_001",
+            events: [
+              {
+                sequence: 1,
+                eventType: "incident.created",
+                actor: "workflow",
+                occurredAt: "2026-08-16T10:00:00.000Z",
+                details: {},
+              },
+            ],
+          });
+        }
         return json({}, 404);
       }),
     );
@@ -229,6 +263,14 @@ describe("App", () => {
     expect(await screen.findByText(/Prepare the home for sleep/u)).toBeInTheDocument();
     expect(screen.getByText(/security\.arm/u)).toBeInTheDocument();
     expect(screen.queryByText(/Run: /u)).not.toBeInTheDocument();
+  });
+
+  it("shows an actionable incident timeline", async () => {
+    render(<App />);
+    expect(await screen.findByRole("heading", { name: "Moisture detected" })).toBeInTheDocument();
+    expect(screen.getByText("1 active")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show timeline" }));
+    expect(await screen.findByText(/incident\.created/u)).toBeInTheDocument();
   });
 });
 

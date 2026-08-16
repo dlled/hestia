@@ -71,6 +71,28 @@ describe("Home Assistant mapping", () => {
     expect(event.schemaVersion).toBe(1);
     expect(event.subject.entityId).toBe(event.data.entity.id);
   });
+
+  it("preserves moisture semantics and exposes valve control as R3 capability", () => {
+    const moisture = mapHomeAssistantState(
+      {
+        ...fixture("on"),
+        entity_id: "binary_sensor.utility_leak",
+        attributes: { friendly_name: "Utility leak", device_class: "moisture" },
+      },
+      { homeId: "home_primary", instanceId: "ha_main" },
+    );
+    const valve = mapHomeAssistantState(
+      {
+        ...fixture("open"),
+        entity_id: "valve.main_water",
+        attributes: { friendly_name: "Main water valve" },
+      },
+      { homeId: "home_primary", instanceId: "ha_main" },
+    );
+
+    expect(moisture).toMatchObject({ deviceClass: "moisture", capabilities: ["sensor.read"] });
+    expect(valve.capabilities).toEqual(["valve.setOpen"]);
+  });
 });
 
 function fixture(state: string) {

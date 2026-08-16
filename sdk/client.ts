@@ -126,6 +126,7 @@ export namespace edge {
             this.homeAssistantStatus = this.homeAssistantStatus.bind(this)
             this.identityManifest = this.identityManifest.bind(this)
             this.incidentAudit = this.incidentAudit.bind(this)
+            this.incidentWorkflowState = this.incidentWorkflowState.bind(this)
             this.ingestEnergyReading = this.ingestEnergyReading.bind(this)
             this.interpretIntent = this.interpretIntent.bind(this)
             this.listHomeEntities = this.listHomeEntities.bind(this)
@@ -135,9 +136,12 @@ export namespace edge {
             this.previewSleepPlan = this.previewSleepPlan.bind(this)
             this.publishAutomation = this.publishAutomation.bind(this)
             this.publishAutomationPlan = this.publishAutomationPlan.bind(this)
+            this.publishLeakPlaybook = this.publishLeakPlaybook.bind(this)
             this.putEnergyTariff = this.putEnergyTariff.bind(this)
             this.recoverOwner = this.recoverOwner.bind(this)
+            this.resolveIncident = this.resolveIncident.bind(this)
             this.saveAutomationDraft = this.saveAutomationDraft.bind(this)
+            this.saveLeakPlaybookDraft = this.saveLeakPlaybookDraft.bind(this)
             this.simulateAutomation = this.simulateAutomation.bind(this)
             this.startAutomationPlan = this.startAutomationPlan.bind(this)
             this.startHomeAssistantStream = this.startHomeAssistantStream.bind(this)
@@ -388,6 +392,16 @@ export namespace edge {
 }
         }
 
+        public async incidentWorkflowState(workflowId: string): Promise<{
+    stateJson: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/api/v1/incidents/${encodeURIComponent(workflowId)}/workflow`)
+            return await resp.json() as {
+    stateJson: string
+}
+        }
+
         public async ingestEnergyReading(params: {
     homeId: string
     meterId: string
@@ -468,6 +482,12 @@ export namespace edge {
             return await resp.json() as shared.ActionPlanView
         }
 
+        public async publishLeakPlaybook(playbookId: string, version: number): Promise<shared.LeakPlaybookView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/incident-playbooks/${encodeURIComponent(playbookId)}/versions/${encodeURIComponent(version)}/publish`)
+            return await resp.json() as shared.LeakPlaybookView
+        }
+
         public async putEnergyTariff(params: {
     homeId: string
     startsAt: string
@@ -489,10 +509,35 @@ export namespace edge {
             return await resp.json() as shared.SessionView
         }
 
+        public async resolveIncident(incidentId: string, params: {
+    status: "resolved" | "false_positive"
+    note: string
+}): Promise<{
+    accepted: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/incidents/${encodeURIComponent(incidentId)}/resolve`, JSON.stringify(params))
+            return await resp.json() as {
+    accepted: true
+}
+        }
+
         public async saveAutomationDraft(params: shared.AutomationDefinitionView): Promise<shared.AutomationDefinitionView> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/automations/drafts`, JSON.stringify(params))
             return await resp.json() as shared.AutomationDefinitionView
+        }
+
+        public async saveLeakPlaybookDraft(homeId: string, params: {
+    playbookId?: string
+    name: string
+    mode: "active" | "test"
+    acknowledgementTimeoutMs: number
+    actions: shared.IncidentPlaybookActionView[]
+}): Promise<shared.LeakPlaybookView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/homes/${encodeURIComponent(homeId)}/incident-playbooks/leak/drafts`, JSON.stringify(params))
+            return await resp.json() as shared.LeakPlaybookView
         }
 
         public async simulateAutomation(automationId: string, version: number, params: {
@@ -614,6 +659,24 @@ export namespace mcpgateway {
 
 export namespace workerbridge {
     export interface Authorized {
+        authorization?: string
+    }
+
+    export interface Authorized {
+        eventType: string
+        actor: string
+        detailsJson: string
+        authorization?: string
+    }
+
+    export interface Authorized {
+        workflowId: string
+        evidenceJson: string
+        playbookJson: string
+        authorization?: string
+    }
+
+    export interface Authorized {
         utterance: string
         requestedBy?: string
         homeId?: string
@@ -630,13 +693,114 @@ export namespace workerbridge {
         authorization?: string
     }
 
+    export interface Authorized {
+        severity: "info" | "warning" | "critical"
+        channel: string
+        recipient: string
+        status: "delivered" | "skipped"
+        dedupeKey: string
+        ttlSeconds: number
+        requiredAck: boolean
+        escalationStep: number
+        failureMessage?: string
+        authorization?: string
+    }
+
+    export interface Authorized {
+        status: "open" | "acknowledged" | "mitigated" | "monitoring" | "resolved" | "false_positive"
+        eventType: string
+        actor: string
+        detailsJson: string
+        escalationStep?: number
+        principalId?: string
+        note?: string
+        authorization?: string
+    }
+
     export class ServiceClient {
         private baseClient: BaseClient
 
         constructor(baseClient: BaseClient) {
             this.baseClient = baseClient
+            this.activeLeakPlaybook = this.activeLeakPlaybook.bind(this)
+            this.appendIncidentEvent = this.appendIncidentEvent.bind(this)
+            this.createIncidentRecord = this.createIncidentRecord.bind(this)
             this.interpretIntent = this.interpretIntent.bind(this)
             this.previewSleep = this.previewSleep.bind(this)
+            this.recordIncidentDelivery = this.recordIncidentDelivery.bind(this)
+            this.transitionIncident = this.transitionIncident.bind(this)
+        }
+
+        public async activeLeakPlaybook(homeId: string, params: Authorized<{
+    homeId: string
+}>): Promise<{
+    playbookJson: string
+}> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                authorization: params.authorization,
+            })
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/workers/v1/homes/${encodeURIComponent(homeId)}/incident-playbooks/leak/active`, undefined, {headers})
+            return await resp.json() as {
+    playbookJson: string
+}
+        }
+
+        public async appendIncidentEvent(incidentId: string, params: Authorized<{
+    incidentId: string
+    eventType: string
+    actor: string
+    detailsJson: string
+}>): Promise<{
+    accepted: true
+}> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                authorization: params.authorization,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                actor:       params.actor,
+                detailsJson: params.detailsJson,
+                eventType:   params.eventType,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workers/v1/incidents/${encodeURIComponent(incidentId)}/events`, JSON.stringify(body), {headers})
+            return await resp.json() as {
+    accepted: true
+}
+        }
+
+        public async createIncidentRecord(params: Authorized<{
+    workflowId: string
+    evidenceJson: string
+    playbookJson: string
+}>): Promise<{
+    incidentId: string
+    deduplicated: boolean
+}> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                authorization: params.authorization,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                evidenceJson: params.evidenceJson,
+                playbookJson: params.playbookJson,
+                workflowId:   params.workflowId,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workers/v1/incidents`, JSON.stringify(body), {headers})
+            return await resp.json() as {
+    incidentId: string
+    deduplicated: boolean
+}
         }
 
         public async interpretIntent(params: Authorized<shared.ResidentIntentRequestView>): Promise<shared.IntentInterpretationView> {
@@ -676,6 +840,80 @@ export namespace workerbridge {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/workers/v1/plans/sleep/preview`, JSON.stringify(body), {headers})
             return await resp.json() as shared.SleepPlanPreviewView
+        }
+
+        public async recordIncidentDelivery(incidentId: string, params: Authorized<{
+    incidentId: string
+    severity: "info" | "warning" | "critical"
+    channel: string
+    recipient: string
+    status: "delivered" | "skipped"
+    dedupeKey: string
+    ttlSeconds: number
+    requiredAck: boolean
+    escalationStep: number
+    failureMessage?: string
+}>): Promise<{
+    accepted: true
+}> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                authorization: params.authorization,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                channel:        params.channel,
+                dedupeKey:      params.dedupeKey,
+                escalationStep: params.escalationStep,
+                failureMessage: params.failureMessage,
+                recipient:      params.recipient,
+                requiredAck:    params.requiredAck,
+                severity:       params.severity,
+                status:         params.status,
+                ttlSeconds:     params.ttlSeconds,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workers/v1/incidents/${encodeURIComponent(incidentId)}/deliveries`, JSON.stringify(body), {headers})
+            return await resp.json() as {
+    accepted: true
+}
+        }
+
+        public async transitionIncident(incidentId: string, params: Authorized<{
+    incidentId: string
+    status: "open" | "acknowledged" | "mitigated" | "monitoring" | "resolved" | "false_positive"
+    eventType: string
+    actor: string
+    detailsJson: string
+    escalationStep?: number
+    principalId?: string
+    note?: string
+}>): Promise<{
+    accepted: true
+}> {
+            // Convert our params into the objects we need for the request
+            const headers = makeRecord<string, string>({
+                authorization: params.authorization,
+            })
+
+            // Construct the body with only the fields which we want encoded within the body (excluding query string or header fields)
+            const body: Record<string, any> = {
+                actor:          params.actor,
+                detailsJson:    params.detailsJson,
+                escalationStep: params.escalationStep,
+                eventType:      params.eventType,
+                note:           params.note,
+                principalId:    params.principalId,
+                status:         params.status,
+            }
+
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/workers/v1/incidents/${encodeURIComponent(incidentId)}/transition`, JSON.stringify(body), {headers})
+            return await resp.json() as {
+    accepted: true
+}
         }
     }
 }
@@ -951,6 +1189,7 @@ export namespace shared {
         areaId?: string
         name: string
         domain: string
+        deviceClass?: string
         capabilities: string[]
         externalRef: {
             system: "home_assistant" | "mqtt" | "webhook" | "virtual"
@@ -1007,18 +1246,38 @@ export namespace shared {
         details: { [key: string]: JsonScalarView }
     }
 
+    export interface IncidentPlaybookActionView {
+        actionId: string
+        command: CommandView
+        expectedObservation: ExpectedObservationView
+        compensation?: {
+            command: CommandView
+            expectedObservation: ExpectedObservationView
+        }
+    }
+
     export interface IncidentView {
         incidentId: string
         homeId: string
         dedupeKey: string
         severity: "info" | "warning" | "critical"
-        status: "open" | "acknowledged" | "escalated" | "resolved"
+        status: "open" | "acknowledged" | "mitigated" | "monitoring" | "resolved" | "false_positive"
         title: string
         body: string
         createdAt: string
+        workflowId?: string
+        playbookId?: string
+        playbookVersion?: number
+        sourceEventId?: string
+        requiredAck: boolean
+        escalationStep: number
+        ttlExpiresAt?: string
         acknowledgedAt?: string
         acknowledgedBy?: string
         escalatedAt?: string
+        resolvedAt?: string
+        resolvedBy?: string
+        resolutionNote?: string
     }
 
     export interface IntegrationCheckpointView {
@@ -1057,6 +1316,21 @@ export namespace shared {
     }
 
     export type JsonScalarView = string | number | boolean | null
+
+    export interface LeakPlaybookView {
+        playbookId: string
+        version: number
+        homeId: string
+        name: string
+        status: "draft" | "published" | "retired"
+        triggerDeviceClass: "moisture"
+        preauthorized: true
+        mode: "active" | "test"
+        acknowledgementTimeoutMs: number
+        actions: IncidentPlaybookActionView[]
+        createdAt: string
+        publishedAt?: string
+    }
 
     export interface ObservedStateView {
         value: string
