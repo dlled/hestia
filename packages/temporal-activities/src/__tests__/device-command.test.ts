@@ -24,6 +24,14 @@ describe("Home Assistant command mapping", () => {
       "Capability level.set is not mapped for sensor",
     );
   });
+
+  it("maps deterministic water-valve closure", () => {
+    expect(mapHomeAssistantService("valve", command("valve.setOpen", { open: false }))).toEqual({
+      domain: "valve",
+      service: "close_valve",
+      data: {},
+    });
+  });
 });
 
 function command(capability: TypedCommand["capability"], input: Record<string, unknown>) {

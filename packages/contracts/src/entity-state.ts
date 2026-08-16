@@ -58,6 +58,7 @@ export const TwinEntitySchema = z.object({
   areaId: AreaIdSchema.optional(),
   name: z.string().min(1),
   domain: z.string().min(1),
+  deviceClass: z.string().min(1).optional(),
   capabilities: z.array(CapabilityIdSchema),
   externalRef: ExternalEntityRefSchema,
   observedState: StateSnapshotSchema,

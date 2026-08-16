@@ -26,9 +26,9 @@ Natural-language interpretation, strict model output, durable clarification, det
 
 ### Phase 3B — Identity and incident notification vertical
 
-Implemented in native Encore services. Browser hardware-passkey UX and notification preferences remain product increments.
+The native Encore identity backend and SC-02 leak-incident vertical are implemented. Moisture events now cross JetStream, a real notification worker, a constrained versioned playbook and Temporal acknowledgement/escalation/closure before appearing in the Incident Center. Browser hardware-passkey UX, notification preferences and non-webhook channels remain product increments.
 
-Exit proof: unit policy/auth tests, service integration tests, and a black-box incident flow with acknowledgement, restart, and denied guest escalation.
+Current proof: unit policy/auth tests, service integration tests, Temporal timer/compensation tests and a self-hosted black-box incident trigger. Remaining exit proof: browser acknowledgement, restart while waiting and denied guest escalation.
 
 ### Phase 4 — Automation DSL, simulation, and proactivity
 
@@ -51,7 +51,7 @@ Exit proof: adapter contract suite, MCP conformance/integrity suite, plugin sand
 
 ## Remaining operational closure
 
-The production UI identity flow, notification preferences/channels, observability pipeline, backup/restore drill, chaos schedule and full legacy-runtime deletion remain follow-up feature PRs. The Encore backend baseline no longer depends on legacy HTTP services; Temporal workers use the authenticated `workerbridge` for model and plan activity calls.
+The production UI identity flow, notification preferences and additional channels, observability pipeline, backup/restore drill, chaos schedule and full legacy-runtime deletion remain follow-up feature PRs. The Encore backend baseline no longer depends on legacy HTTP services; Temporal workers use the authenticated `workerbridge` for model, plan and incident activity calls.
 
 ## Current verification commands
 

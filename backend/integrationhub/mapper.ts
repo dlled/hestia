@@ -31,6 +31,7 @@ export function mapHomeAssistantState(
   const [domain] = state.entity_id.split(".");
   if (!domain) throw new Error(`invalid Home Assistant entity id: ${state.entity_id}`);
   const unit = stringAttribute(state.attributes, "unit_of_measurement");
+  const deviceClass = stringAttribute(state.attributes, "device_class");
   const registryEntity = context.registry?.entities.find(
     (entity) => entity.entity_id === state.entity_id,
   );
@@ -49,6 +50,7 @@ export function mapHomeAssistantState(
       : {}),
     name: stringAttribute(state.attributes, "friendly_name") ?? state.entity_id,
     domain,
+    ...(deviceClass ? { deviceClass } : {}),
     capabilities: capabilitiesFor(domain, state.attributes),
     externalRef: {
       system: "home_assistant",
@@ -193,6 +195,7 @@ function capabilitiesFor(domain: string, _attributes: Record<string, unknown>): 
     capabilities.add("climate.setMode");
   }
   if (domain === "cover") capabilities.add("cover.setPosition");
+  if (domain === "valve") capabilities.add("valve.setOpen");
   if (domain === "lock") {
     capabilities.add("lock.lock");
     capabilities.add("lock.unlock");

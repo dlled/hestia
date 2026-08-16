@@ -46,7 +46,7 @@ for (const entrypoint of [
 }
 
 console.log(
-  `runtime smoke valid (edge API import, ${services.length} HTTP services, 3 reserved workers, 1 device worker)`,
+  `runtime smoke valid (edge API import, ${services.length} HTTP services, 2 reserved workers, 2 active workers)`,
 );
 
 function start(entrypoint, extraEnv = {}) {

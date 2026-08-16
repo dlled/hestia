@@ -5,6 +5,7 @@ export * from "./entity-state.js";
 export * from "./events.js";
 export * from "./health.js";
 export * from "./ids.js";
+export * from "./incident.js";
 export * from "./integration-status.js";
 export * from "./intent.js";
 export * from "./ping.js";

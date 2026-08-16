@@ -435,6 +435,9 @@
             },
             "type": "array"
           },
+          "deviceClass": {
+            "type": "string"
+          },
           "deviceId": {
             "type": "string"
           },
@@ -557,6 +560,40 @@
         ],
         "type": "object"
       },
+      "shared.IncidentPlaybookActionView": {
+        "properties": {
+          "actionId": {
+            "type": "string"
+          },
+          "command": {
+            "$ref": "#/components/schemas/shared.CommandView"
+          },
+          "compensation": {
+            "properties": {
+              "command": {
+                "$ref": "#/components/schemas/shared.CommandView"
+              },
+              "expectedObservation": {
+                "$ref": "#/components/schemas/shared.ExpectedObservationView"
+              }
+            },
+            "required": [
+              "command",
+              "expectedObservation"
+            ],
+            "type": "object"
+          },
+          "expectedObservation": {
+            "$ref": "#/components/schemas/shared.ExpectedObservationView"
+          }
+        },
+        "required": [
+          "actionId",
+          "command",
+          "expectedObservation"
+        ],
+        "type": "object"
+      },
       "shared.IncidentView": {
         "properties": {
           "acknowledgedAt": {
@@ -577,10 +614,31 @@
           "escalatedAt": {
             "type": "string"
           },
+          "escalationStep": {
+            "type": "number"
+          },
           "homeId": {
             "type": "string"
           },
           "incidentId": {
+            "type": "string"
+          },
+          "playbookId": {
+            "type": "string"
+          },
+          "playbookVersion": {
+            "type": "number"
+          },
+          "requiredAck": {
+            "type": "boolean"
+          },
+          "resolutionNote": {
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "string"
+          },
+          "resolvedBy": {
             "type": "string"
           },
           "severity": {
@@ -591,16 +649,27 @@
             ],
             "type": "string"
           },
+          "sourceEventId": {
+            "type": "string"
+          },
           "status": {
             "enum": [
               "open",
               "acknowledged",
-              "escalated",
-              "resolved"
+              "mitigated",
+              "monitoring",
+              "resolved",
+              "false_positive"
             ],
             "type": "string"
           },
           "title": {
+            "type": "string"
+          },
+          "ttlExpiresAt": {
+            "type": "string"
+          },
+          "workflowId": {
             "type": "string"
           }
         },
@@ -612,7 +681,9 @@
           "status",
           "title",
           "body",
-          "createdAt"
+          "createdAt",
+          "requiredAck",
+          "escalationStep"
         ],
         "type": "object"
       },
@@ -1988,6 +2059,147 @@
         }
       }
     },
+    "/api/v1/homes/{homeId}/incident-playbooks/leak/drafts": {
+      "post": {
+        "operationId": "POST:edge.saveLeakPlaybookDraft",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "acknowledgementTimeoutMs": {
+                    "type": "number"
+                  },
+                  "actions": {
+                    "items": {
+                      "$ref": "#/components/schemas/shared.IncidentPlaybookActionView"
+                    },
+                    "type": "array"
+                  },
+                  "mode": {
+                    "enum": [
+                      "active",
+                      "test"
+                    ],
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "playbookId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "mode",
+                  "acknowledgementTimeoutMs",
+                  "actions"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "acknowledgementTimeoutMs": {
+                      "type": "number"
+                    },
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IncidentPlaybookActionView"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "mode": {
+                      "enum": [
+                        "active",
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "playbookId": {
+                      "type": "string"
+                    },
+                    "preauthorized": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    },
+                    "publishedAt": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "draft",
+                        "published",
+                        "retired"
+                      ],
+                      "type": "string"
+                    },
+                    "triggerDeviceClass": {
+                      "enum": [
+                        "moisture"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "playbookId",
+                    "version",
+                    "homeId",
+                    "name",
+                    "status",
+                    "triggerDeviceClass",
+                    "preauthorized",
+                    "mode",
+                    "acknowledgementTimeoutMs",
+                    "actions",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
     "/api/v1/homes/{homeId}/incidents": {
       "get": {
         "operationId": "GET:edge.listIncidents",
@@ -2874,6 +3086,120 @@
         }
       }
     },
+    "/api/v1/incident-playbooks/{playbookId}/versions/{version}/publish": {
+      "post": {
+        "operationId": "POST:edge.publishLeakPlaybook",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "playbookId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "acknowledgementTimeoutMs": {
+                      "type": "number"
+                    },
+                    "actions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IncidentPlaybookActionView"
+                      },
+                      "type": "array"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "homeId": {
+                      "type": "string"
+                    },
+                    "mode": {
+                      "enum": [
+                        "active",
+                        "test"
+                      ],
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "playbookId": {
+                      "type": "string"
+                    },
+                    "preauthorized": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    },
+                    "publishedAt": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "draft",
+                        "published",
+                        "retired"
+                      ],
+                      "type": "string"
+                    },
+                    "triggerDeviceClass": {
+                      "enum": [
+                        "moisture"
+                      ],
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "playbookId",
+                    "version",
+                    "homeId",
+                    "name",
+                    "status",
+                    "triggerDeviceClass",
+                    "preauthorized",
+                    "mode",
+                    "acknowledgementTimeoutMs",
+                    "actions",
+                    "createdAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
     "/api/v1/incidents": {
       "post": {
         "operationId": "POST:edge.createIncident",
@@ -2984,10 +3310,31 @@
                     "escalatedAt": {
                       "type": "string"
                     },
+                    "escalationStep": {
+                      "type": "number"
+                    },
                     "homeId": {
                       "type": "string"
                     },
                     "incidentId": {
+                      "type": "string"
+                    },
+                    "playbookId": {
+                      "type": "string"
+                    },
+                    "playbookVersion": {
+                      "type": "number"
+                    },
+                    "requiredAck": {
+                      "type": "boolean"
+                    },
+                    "resolutionNote": {
+                      "type": "string"
+                    },
+                    "resolvedAt": {
+                      "type": "string"
+                    },
+                    "resolvedBy": {
                       "type": "string"
                     },
                     "severity": {
@@ -2998,16 +3345,27 @@
                       ],
                       "type": "string"
                     },
+                    "sourceEventId": {
+                      "type": "string"
+                    },
                     "status": {
                       "enum": [
                         "open",
                         "acknowledged",
-                        "escalated",
-                        "resolved"
+                        "mitigated",
+                        "monitoring",
+                        "resolved",
+                        "false_positive"
                       ],
                       "type": "string"
                     },
                     "title": {
+                      "type": "string"
+                    },
+                    "ttlExpiresAt": {
+                      "type": "string"
+                    },
+                    "workflowId": {
                       "type": "string"
                     }
                   },
@@ -3019,7 +3377,9 @@
                     "status",
                     "title",
                     "body",
-                    "createdAt"
+                    "createdAt",
+                    "requiredAck",
+                    "escalationStep"
                   ],
                   "type": "object"
                 }
@@ -3121,10 +3481,31 @@
                     "escalatedAt": {
                       "type": "string"
                     },
+                    "escalationStep": {
+                      "type": "number"
+                    },
                     "homeId": {
                       "type": "string"
                     },
                     "incidentId": {
+                      "type": "string"
+                    },
+                    "playbookId": {
+                      "type": "string"
+                    },
+                    "playbookVersion": {
+                      "type": "number"
+                    },
+                    "requiredAck": {
+                      "type": "boolean"
+                    },
+                    "resolutionNote": {
+                      "type": "string"
+                    },
+                    "resolvedAt": {
+                      "type": "string"
+                    },
+                    "resolvedBy": {
                       "type": "string"
                     },
                     "severity": {
@@ -3135,16 +3516,27 @@
                       ],
                       "type": "string"
                     },
+                    "sourceEventId": {
+                      "type": "string"
+                    },
                     "status": {
                       "enum": [
                         "open",
                         "acknowledged",
-                        "escalated",
-                        "resolved"
+                        "mitigated",
+                        "monitoring",
+                        "resolved",
+                        "false_positive"
                       ],
                       "type": "string"
                     },
                     "title": {
+                      "type": "string"
+                    },
+                    "ttlExpiresAt": {
+                      "type": "string"
+                    },
+                    "workflowId": {
                       "type": "string"
                     }
                   },
@@ -3156,7 +3548,119 @@
                     "status",
                     "title",
                     "body",
-                    "createdAt"
+                    "createdAt",
+                    "requiredAck",
+                    "escalationStep"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{incidentId}/resolve": {
+      "post": {
+        "operationId": "POST:edge.resolveIncident",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "note": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "resolved",
+                      "false_positive"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "note"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/incidents/{workflowId}/workflow": {
+      "get": {
+        "operationId": "GET:edge.incidentWorkflowState",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "workflowId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "stateJson": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "stateJson"
                   ],
                   "type": "object"
                 }
@@ -4419,6 +4923,416 @@
         "operationId": "POST:mcpgateway.mcp",
         "responses": {
           "200": {
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/homes/{homeId}/incident-playbooks/leak/active": {
+      "get": {
+        "operationId": "GET:workerbridge.activeLeakPlaybook",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "homeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "playbookJson": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "playbookJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/incidents": {
+      "post": {
+        "operationId": "POST:workerbridge.createIncidentRecord",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "evidenceJson": {
+                    "type": "string"
+                  },
+                  "playbookJson": {
+                    "type": "string"
+                  },
+                  "workflowId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workflowId",
+                  "evidenceJson",
+                  "playbookJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "deduplicated": {
+                      "type": "boolean"
+                    },
+                    "incidentId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "incidentId",
+                    "deduplicated"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/incidents/{incidentId}/deliveries": {
+      "post": {
+        "operationId": "POST:workerbridge.recordIncidentDelivery",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "channel": {
+                    "type": "string"
+                  },
+                  "dedupeKey": {
+                    "type": "string"
+                  },
+                  "escalationStep": {
+                    "type": "number"
+                  },
+                  "failureMessage": {
+                    "type": "string"
+                  },
+                  "recipient": {
+                    "type": "string"
+                  },
+                  "requiredAck": {
+                    "type": "boolean"
+                  },
+                  "severity": {
+                    "enum": [
+                      "info",
+                      "warning",
+                      "critical"
+                    ],
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "delivered",
+                      "skipped"
+                    ],
+                    "type": "string"
+                  },
+                  "ttlSeconds": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "severity",
+                  "channel",
+                  "recipient",
+                  "status",
+                  "dedupeKey",
+                  "ttlSeconds",
+                  "requiredAck",
+                  "escalationStep"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/incidents/{incidentId}/events": {
+      "post": {
+        "operationId": "POST:workerbridge.appendIncidentEvent",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actor": {
+                    "type": "string"
+                  },
+                  "detailsJson": {
+                    "type": "string"
+                  },
+                  "eventType": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "eventType",
+                  "actor",
+                  "detailsJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/workers/v1/incidents/{incidentId}/transition": {
+      "post": {
+        "operationId": "POST:workerbridge.transitionIncident",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "incidentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          },
+          {
+            "allowEmptyValue": true,
+            "explode": true,
+            "in": "header",
+            "name": "authorization",
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "actor": {
+                    "type": "string"
+                  },
+                  "detailsJson": {
+                    "type": "string"
+                  },
+                  "escalationStep": {
+                    "type": "number"
+                  },
+                  "eventType": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "principalId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "open",
+                      "acknowledged",
+                      "mitigated",
+                      "monitoring",
+                      "resolved",
+                      "false_positive"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "eventType",
+                  "actor",
+                  "detailsJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accepted": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
             "description": "Success response"
           },
           "default": {

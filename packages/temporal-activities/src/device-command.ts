@@ -132,6 +132,12 @@ export function mapHomeAssistantService(
         service: "set_cover_position",
         data: { position: numberInput(command, "position", 0, 100) },
       };
+    case "valve.setOpen":
+      return {
+        domain: "valve",
+        service: booleanInput(command, "open") ? "open_valve" : "close_valve",
+        data: {},
+      };
     case "lock.lock":
       return { domain: "lock", service: "lock", data: {} };
     case "lock.unlock":

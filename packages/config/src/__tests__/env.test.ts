@@ -16,6 +16,21 @@ describe("environment contract", () => {
     expect(() => loadEnv({ HESTIA_ENV: "production" })).toThrow();
   });
 
+  it("requires a strong signing key when external incident delivery is enabled", () => {
+    expect(() =>
+      loadEnv({
+        INCIDENT_EXTERNAL_WEBHOOK_URL: "https://alerts.example.test/incidents",
+        INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY: "too-short",
+      }),
+    ).toThrow(/at least 32 characters/u);
+    expect(() =>
+      loadEnv({
+        INCIDENT_EXTERNAL_WEBHOOK_URL: "https://alerts.example.test/incidents",
+        INCIDENT_EXTERNAL_WEBHOOK_SIGNING_KEY: "a".repeat(32),
+      }),
+    ).not.toThrow();
+  });
+
   it("prefers the container-wide PORT over the local service variable", () => {
     expect(
       resolveServicePort("HOME_CORE_PORT", 3001, { PORT: "3000", HOME_CORE_PORT: "3001" }),
