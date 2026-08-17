@@ -19,7 +19,8 @@ RUN pnpm --filter @hestia/web build
 
 FROM nginx:alpine AS runtime
 
-COPY infra/docker/nginx.conf /etc/nginx/nginx.conf
+ARG NGINX_CONFIG=infra/docker/nginx.conf
+COPY ${NGINX_CONFIG} /etc/nginx/nginx.conf
 COPY --from=build --chown=nginx:nginx /workspace/apps/web/dist /usr/share/nginx/html
 
 USER nginx

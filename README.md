@@ -4,7 +4,7 @@ Local-first home operating system. A person states an intent; HESTIA reads conte
 
 Thesis: **probabilistic intelligence above; deterministic execution below.**
 
-This repository is a TypeScript monorepo. Phases 0–2 and the first Phase 3 vertical are implemented: Home Assistant state is materialized through JetStream and PostgreSQL, and natural-language sleep intent becomes a durable, resumable, policy-controlled Temporal workflow with observed-state verification. The deployment skeleton now contains every service boundary from the source architecture, including identity, provider isolation, notifications, and a stateless MCP 2026-07-28 gateway.
+This repository is a TypeScript monorepo whose backend is being consolidated on native Encore.ts services. Home Assistant state is materialized through JetStream and PostgreSQL, and natural-language sleep intent becomes a durable, resumable, policy-controlled Temporal workflow with observed-state verification. Temporal and NATS JetStream remain external runtime boundaries; identity, provider isolation, notifications, and the stateless MCP 2026-07-28 gateway run behind Encore.
 
 ## Stack
 
@@ -12,7 +12,7 @@ This repository is a TypeScript monorepo. Phases 0–2 and the first Phase 3 ver
 | --- | --- |
 | Runtime | Node.js 24+, TypeScript strict, pnpm workspaces, Turborepo |
 | Web | React 19 + Vite 8 |
-| HTTP | Express 5 (BFF + domain services) |
+| HTTP | Encore.ts native services and generated contracts |
 | Orchestration | Temporal TypeScript |
 | Events | NATS JetStream |
 | Data | PostgreSQL (one cluster, schema-per-service) + MinIO |
@@ -52,6 +52,8 @@ OPENROUTER_API_KEY=... OPENROUTER_MODEL_FAST=... pnpm test:evals:intent
 ```
 
 For the full production-style container topology, see [Container deployment](docs/runbooks/containers.md).
+
+The current identity browser proof is documented in [Phase 3B browser identity](docs/product/phase-3b-browser-identity.md).
 
 ## Phase 0 exit criteria
 

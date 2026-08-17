@@ -513,6 +513,156 @@
         ],
         "type": "object"
       },
+      "shared.IdentityAuditEventView": {
+        "properties": {
+          "actorId": {
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/shared.JsonScalarView"
+            },
+            "type": "object"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "sequence",
+          "eventType",
+          "occurredAt",
+          "details"
+        ],
+        "type": "object"
+      },
+      "shared.IdentityGrantView": {
+        "properties": {
+          "areaId": {
+            "type": "string"
+          },
+          "capability": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "grantId": {
+            "type": "string"
+          },
+          "homeId": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string"
+          },
+          "riskCeiling": {
+            "$ref": "#/components/schemas/shared.RiskClassView"
+          }
+        },
+        "required": [
+          "grantId",
+          "principalId",
+          "homeId",
+          "riskCeiling",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "shared.IdentityPasskeyView": {
+        "properties": {
+          "backedUp": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string"
+          },
+          "transports": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "credentialId",
+          "principalId",
+          "label",
+          "deviceType",
+          "backedUp",
+          "transports",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "shared.IdentityPrincipalView": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/shared.IdentityRoleView"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "active",
+              "revoked"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "principalId",
+          "displayName",
+          "role",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
       "shared.IdentityRoleView": {
         "enum": [
           "Owner",
@@ -522,6 +672,32 @@
           "Service Account"
         ],
         "type": "string"
+      },
+      "shared.IdentitySessionRecordView": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "principalId": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId",
+          "principalId",
+          "expiresAt",
+          "createdAt"
+        ],
+        "type": "object"
       },
       "shared.IncidentAuditView": {
         "properties": {
@@ -2297,6 +2473,241 @@
         }
       }
     },
+    "/api/v1/identity/admin": {
+      "get": {
+        "operationId": "GET:edge.identityAdminSnapshot",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "audit": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentityAuditEventView"
+                      },
+                      "type": "array"
+                    },
+                    "grants": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentityGrantView"
+                      },
+                      "type": "array"
+                    },
+                    "passkeys": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentityPasskeyView"
+                      },
+                      "type": "array"
+                    },
+                    "principals": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentityPrincipalView"
+                      },
+                      "type": "array"
+                    },
+                    "sessions": {
+                      "items": {
+                        "$ref": "#/components/schemas/shared.IdentitySessionRecordView"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "principals",
+                    "passkeys",
+                    "sessions",
+                    "grants",
+                    "audit"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/grants/{grantId}/revoke": {
+      "post": {
+        "operationId": "POST:edge.revokeIdentityGrant",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "grantId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "revoked": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "revoked"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/passkeys/{credentialId}/revoke": {
+      "post": {
+        "operationId": "POST:edge.revokeIdentityPasskey",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "credentialId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "revoked": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "revoked"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/principals/{principalId}/revoke": {
+      "post": {
+        "operationId": "POST:edge.revokeIdentityPrincipal",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "principalId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "revoked": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "revoked"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/admin/sessions/{sessionId}/revoke": {
+      "post": {
+        "operationId": "POST:edge.revokeIdentitySession",
+        "parameters": [
+          {
+            "allowEmptyValue": true,
+            "explode": false,
+            "in": "path",
+            "name": "sessionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "revoked": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "revoked"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
     "/api/v1/identity/authorize": {
       "post": {
         "operationId": "POST:edge.authorize",
@@ -2319,13 +2730,9 @@
                   },
                   "risk": {
                     "$ref": "#/components/schemas/shared.RiskClassView"
-                  },
-                  "sessionToken": {
-                    "type": "string"
                   }
                 },
                 "required": [
-                  "sessionToken",
                   "homeId"
                 ],
                 "type": "object"
@@ -2355,6 +2762,247 @@
                   "required": [
                     "allowed",
                     "reason"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/guests/invitations": {
+      "post": {
+        "operationId": "POST:edge.createGuestInvitation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "areaId": {
+                    "type": "string"
+                  },
+                  "capability": {
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "homeId": {
+                    "type": "string"
+                  },
+                  "riskCeiling": {
+                    "enum": [
+                      "R0",
+                      "R1",
+                      "R2",
+                      "R3",
+                      "R4"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "displayName",
+                  "homeId",
+                  "riskCeiling",
+                  "expiresAt"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "invitationId": {
+                      "type": "string"
+                    },
+                    "inviteExpiresAt": {
+                      "type": "string"
+                    },
+                    "inviteToken": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "invitationId",
+                    "principalId",
+                    "inviteToken",
+                    "inviteExpiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/guests/invitations/registration/options": {
+      "post": {
+        "operationId": "POST:edge.beginInvitedGuestPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "inviteToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "inviteToken"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "challengeId": {
+                      "type": "string"
+                    },
+                    "optionsJson": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "principalId",
+                    "challengeId",
+                    "optionsJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/guests/invitations/registration/verify": {
+      "post": {
+        "operationId": "POST:edge.finishInvitedGuestPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "principalId": {
+                    "type": "string"
+                  },
+                  "responseJson": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "principalId",
+                  "challengeId",
+                  "responseJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionId": {
+                      "type": "string"
+                    },
+                    "sessionToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sessionId",
+                    "sessionToken",
+                    "principalId",
+                    "role",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/logout": {
+      "post": {
+        "operationId": "POST:edge.logout",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "revoked": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "revoked"
                   ],
                   "type": "object"
                 }
@@ -2454,6 +3102,62 @@
         }
       }
     },
+    "/api/v1/identity/me": {
+      "get": {
+        "operationId": "GET:edge.identityProfile",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "displayName": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionExpiresAt": {
+                      "type": "string"
+                    },
+                    "sessionId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "pending",
+                        "active",
+                        "revoked"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "principalId",
+                    "displayName",
+                    "role",
+                    "status",
+                    "sessionId",
+                    "sessionExpiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
     "/api/v1/identity/passkeys/authentication/options": {
       "post": {
         "operationId": "POST:edge.beginPasskeyAuthentication",
@@ -2539,97 +3243,19 @@
                     "role": {
                       "$ref": "#/components/schemas/shared.IdentityRoleView"
                     },
+                    "sessionId": {
+                      "type": "string"
+                    },
                     "sessionToken": {
                       "type": "string"
                     }
                   },
                   "required": [
+                    "sessionId",
                     "sessionToken",
                     "principalId",
                     "role",
                     "expiresAt"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Success response"
-          },
-          "default": {
-            "$ref": "#/components/responses/APIError"
-          }
-        }
-      }
-    },
-    "/api/v1/identity/passkeys/guests/registration/options": {
-      "post": {
-        "operationId": "POST:edge.beginGuestPasskeyRegistration",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "areaId": {
-                    "type": "string"
-                  },
-                  "capability": {
-                    "type": "string"
-                  },
-                  "displayName": {
-                    "type": "string"
-                  },
-                  "expiresAt": {
-                    "type": "string"
-                  },
-                  "homeId": {
-                    "type": "string"
-                  },
-                  "riskCeiling": {
-                    "enum": [
-                      "R0",
-                      "R1",
-                      "R2",
-                      "R3",
-                      "R4"
-                    ],
-                    "type": "string"
-                  },
-                  "sessionToken": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "sessionToken",
-                  "displayName",
-                  "homeId",
-                  "riskCeiling",
-                  "expiresAt"
-                ],
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "challengeId": {
-                      "type": "string"
-                    },
-                    "optionsJson": {
-                      "type": "string"
-                    },
-                    "principalId": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "principalId",
-                    "challengeId",
-                    "optionsJson"
                   ],
                   "type": "object"
                 }
@@ -2743,11 +3369,119 @@
                     "role": {
                       "$ref": "#/components/schemas/shared.IdentityRoleView"
                     },
+                    "sessionId": {
+                      "type": "string"
+                    },
                     "sessionToken": {
                       "type": "string"
                     }
                   },
                   "required": [
+                    "sessionId",
+                    "sessionToken",
+                    "principalId",
+                    "role",
+                    "expiresAt"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/registration/options": {
+      "post": {
+        "operationId": "POST:edge.beginAuthenticatedPasskeyRegistration",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "challengeId": {
+                      "type": "string"
+                    },
+                    "optionsJson": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "principalId",
+                    "challengeId",
+                    "optionsJson"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Success response"
+          },
+          "default": {
+            "$ref": "#/components/responses/APIError"
+          }
+        }
+      }
+    },
+    "/api/v1/identity/passkeys/registration/verify": {
+      "post": {
+        "operationId": "POST:edge.finishAuthenticatedPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "challengeId": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "responseJson": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "challengeId",
+                  "responseJson"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "expiresAt": {
+                      "type": "string"
+                    },
+                    "principalId": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "$ref": "#/components/schemas/shared.IdentityRoleView"
+                    },
+                    "sessionId": {
+                      "type": "string"
+                    },
+                    "sessionToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sessionId",
                     "sessionToken",
                     "principalId",
                     "role",
@@ -2768,23 +3502,6 @@
     "/api/v1/identity/recovery/codes": {
       "post": {
         "operationId": "POST:edge.createRecoveryCodes",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "sessionToken": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "sessionToken"
-                ],
-                "type": "object"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "content": {
@@ -2852,11 +3569,15 @@
                     "role": {
                       "$ref": "#/components/schemas/shared.IdentityRoleView"
                     },
+                    "sessionId": {
+                      "type": "string"
+                    },
                     "sessionToken": {
                       "type": "string"
                     }
                   },
                   "required": [
+                    "sessionId",
                     "sessionToken",
                     "principalId",
                     "role",

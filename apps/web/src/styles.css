@@ -198,6 +198,171 @@ button.secondary {
   color: var(--hestia-ink);
 }
 
+button.danger {
+  border: 1px solid color-mix(in srgb, var(--hestia-bad) 55%, var(--hestia-line));
+  background: transparent;
+  color: var(--hestia-bad);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.identity-card {
+  margin-top: 1.5rem;
+  padding: 1.1rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--hestia-bg-elevated) 90%, var(--hestia-ember) 10%);
+}
+
+.identity-heading {
+  align-items: center;
+}
+
+.identity-meta {
+  margin: 0.3rem 0 0;
+  color: var(--hestia-muted);
+}
+
+.identity-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.identity-tabs button {
+  border: 1px solid var(--hestia-line);
+  background: transparent;
+  color: var(--hestia-ink);
+}
+
+.identity-tabs button[aria-pressed="true"] {
+  border-color: var(--hestia-ember);
+  background: color-mix(in srgb, var(--hestia-ember) 18%, transparent);
+}
+
+.identity-grid,
+.identity-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.identity-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin-top: 1rem;
+}
+
+.identity-grid .identity-form {
+  max-width: none;
+  margin-top: 0;
+  align-content: start;
+  padding: 0.9rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 14px;
+}
+
+.identity-form h3,
+.identity-admin h3,
+.identity-admin h4 {
+  margin: 0;
+  font-family: var(--hestia-serif);
+}
+
+.identity-form p {
+  margin: 0;
+  color: var(--hestia-muted);
+}
+
+.identity-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--hestia-muted);
+  font-size: 0.82rem;
+}
+
+.identity-form input,
+.identity-form select {
+  min-width: 0;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--hestia-line);
+  border-radius: 10px;
+  background: var(--hestia-bg);
+  color: var(--hestia-ink);
+  font: inherit;
+}
+
+.identity-form input[readonly] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.recovery-codes {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border: 1px solid var(--hestia-warn);
+  border-radius: 10px;
+}
+
+.recovery-codes code {
+  overflow-wrap: anywhere;
+}
+
+.identity-admin {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--hestia-line);
+}
+
+.identity-admin-grid > div {
+  min-width: 0;
+}
+
+.identity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--hestia-line);
+}
+
+.identity-row > div {
+  min-width: 0;
+}
+
+.identity-row strong,
+.identity-row small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.identity-row small {
+  margin-top: 0.2rem;
+  color: var(--hestia-muted);
+}
+
+.identity-feedback {
+  margin: 0.9rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  background: var(--hestia-bg);
+}
+
+.identity-feedback.notice {
+  color: var(--hestia-ok);
+}
+
+.audit-list {
+  max-height: 14rem;
+  overflow: auto;
+}
+
 .intent-form,
 .clarification-form {
   margin-top: 1.2rem;
@@ -412,7 +577,15 @@ dd {
 @media (max-width: 680px) {
   .layout,
   .rail,
-  .routine-options {
+  .routine-options,
+  .identity-grid,
+  .identity-admin-grid {
     grid-template-columns: 1fr;
+  }
+
+  .identity-heading,
+  .identity-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

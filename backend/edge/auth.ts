@@ -9,6 +9,7 @@ interface AuthParams {
 
 export interface AuthData {
   userID: string;
+  sessionId: string;
   sessionToken: string;
   role: IdentityRoleView;
 }
@@ -17,10 +18,15 @@ export const auth = authHandler<AuthParams, AuthData>(async ({ authorization }) 
   if (!authorization?.startsWith("Bearer ")) return null;
   const sessionToken = authorization.slice(7);
   const session = await identity.sessionIdentity({ sessionToken });
-  if (!session.authenticated || !session.principalId || !session.role) {
+  if (!session.authenticated || !session.principalId || !session.role || !session.sessionId) {
     throw APIError.unauthenticated("Session is invalid or expired");
   }
-  return { userID: session.principalId, sessionToken, role: session.role };
+  return {
+    userID: session.principalId,
+    sessionId: session.sessionId,
+    sessionToken,
+    role: session.role,
+  };
 });
 
 export const gateway = new Gateway({ authHandler: auth });
