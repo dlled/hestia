@@ -104,16 +104,20 @@ export namespace edge {
             this.acknowledgeIncident = this.acknowledgeIncident.bind(this)
             this.approveAutomationRun = this.approveAutomationRun.bind(this)
             this.authorize = this.authorize.bind(this)
-            this.beginGuestPasskeyRegistration = this.beginGuestPasskeyRegistration.bind(this)
+            this.beginAuthenticatedPasskeyRegistration = this.beginAuthenticatedPasskeyRegistration.bind(this)
+            this.beginInvitedGuestPasskeyRegistration = this.beginInvitedGuestPasskeyRegistration.bind(this)
             this.beginOwnerPasskeyRegistration = this.beginOwnerPasskeyRegistration.bind(this)
             this.beginPasskeyAuthentication = this.beginPasskeyAuthentication.bind(this)
             this.cancelAutomationRun = this.cancelAutomationRun.bind(this)
             this.clarifyIntentRun = this.clarifyIntentRun.bind(this)
             this.createEnergyRecommendation = this.createEnergyRecommendation.bind(this)
+            this.createGuestInvitation = this.createGuestInvitation.bind(this)
             this.createIncident = this.createIncident.bind(this)
             this.createRecoveryCodes = this.createRecoveryCodes.bind(this)
             this.escalateIncident = this.escalateIncident.bind(this)
             this.evaluatePolicy = this.evaluatePolicy.bind(this)
+            this.finishAuthenticatedPasskeyRegistration = this.finishAuthenticatedPasskeyRegistration.bind(this)
+            this.finishInvitedGuestPasskeyRegistration = this.finishInvitedGuestPasskeyRegistration.bind(this)
             this.finishOwnerPasskeyRegistration = this.finishOwnerPasskeyRegistration.bind(this)
             this.finishPasskeyAuthentication = this.finishPasskeyAuthentication.bind(this)
             this.getAutomationDefinition = this.getAutomationDefinition.bind(this)
@@ -124,12 +128,15 @@ export namespace edge {
             this.getIntentRun = this.getIntentRun.bind(this)
             this.getSleepContext = this.getSleepContext.bind(this)
             this.homeAssistantStatus = this.homeAssistantStatus.bind(this)
+            this.identityAdminSnapshot = this.identityAdminSnapshot.bind(this)
             this.identityManifest = this.identityManifest.bind(this)
+            this.identityProfile = this.identityProfile.bind(this)
             this.incidentAudit = this.incidentAudit.bind(this)
             this.ingestEnergyReading = this.ingestEnergyReading.bind(this)
             this.interpretIntent = this.interpretIntent.bind(this)
             this.listHomeEntities = this.listHomeEntities.bind(this)
             this.listIncidents = this.listIncidents.bind(this)
+            this.logout = this.logout.bind(this)
             this.modelGatewayStatus = this.modelGatewayStatus.bind(this)
             this.previewIntent = this.previewIntent.bind(this)
             this.previewSleepPlan = this.previewSleepPlan.bind(this)
@@ -137,6 +144,10 @@ export namespace edge {
             this.publishAutomationPlan = this.publishAutomationPlan.bind(this)
             this.putEnergyTariff = this.putEnergyTariff.bind(this)
             this.recoverOwner = this.recoverOwner.bind(this)
+            this.revokeIdentityGrant = this.revokeIdentityGrant.bind(this)
+            this.revokeIdentityPasskey = this.revokeIdentityPasskey.bind(this)
+            this.revokeIdentityPrincipal = this.revokeIdentityPrincipal.bind(this)
+            this.revokeIdentitySession = this.revokeIdentitySession.bind(this)
             this.saveAutomationDraft = this.saveAutomationDraft.bind(this)
             this.simulateAutomation = this.simulateAutomation.bind(this)
             this.startAutomationPlan = this.startAutomationPlan.bind(this)
@@ -165,27 +176,35 @@ export namespace edge {
 }
         }
 
-        public async authorize(params: shared.AuthorizationRequestView): Promise<shared.AuthorizationDecisionView> {
+        public async authorize(params: shared.AuthorizationInputView): Promise<shared.AuthorizationDecisionView> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/authorize`, JSON.stringify(params))
             return await resp.json() as shared.AuthorizationDecisionView
         }
 
-        public async beginGuestPasskeyRegistration(params: {
-    sessionToken: string
-    displayName: string
-    homeId: string
-    areaId?: string
-    capability?: string
-    riskCeiling: "R0" | "R1" | "R2" | "R3" | "R4"
-    expiresAt: string
+        public async beginAuthenticatedPasskeyRegistration(): Promise<{
+    principalId: string
+    challengeId: string
+    optionsJson: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/passkeys/registration/options`)
+            return await resp.json() as {
+    principalId: string
+    challengeId: string
+    optionsJson: string
+}
+        }
+
+        public async beginInvitedGuestPasskeyRegistration(params: {
+    inviteToken: string
 }): Promise<{
     principalId: string
     challengeId: string
     optionsJson: string
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/passkeys/guests/registration/options`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/guests/invitations/registration/options`, JSON.stringify(params))
             return await resp.json() as {
     principalId: string
     challengeId: string
@@ -255,6 +274,30 @@ export namespace edge {
             return await resp.json() as shared.EnergyRecommendationView
         }
 
+        public async createGuestInvitation(params: {
+    displayName: string
+    homeId: string
+    areaId?: string
+    deviceId?: string
+    capability?: string
+    riskCeiling: "R0" | "R1" | "R2" | "R3" | "R4"
+    expiresAt: string
+}): Promise<{
+    invitationId: string
+    principalId: string
+    inviteToken: string
+    inviteExpiresAt: string
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/guests/invitations`, JSON.stringify(params))
+            return await resp.json() as {
+    invitationId: string
+    principalId: string
+    inviteToken: string
+    inviteExpiresAt: string
+}
+        }
+
         public async createIncident(params: {
     homeId: string
     dedupeKey: string
@@ -273,13 +316,11 @@ export namespace edge {
 }
         }
 
-        public async createRecoveryCodes(params: {
-    sessionToken: string
-}): Promise<{
+        public async createRecoveryCodes(): Promise<{
     recoveryCodes: string[]
 }> {
             // Now make the actual call to the API
-            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/recovery/codes`, JSON.stringify(params))
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/recovery/codes`)
             return await resp.json() as {
     recoveryCodes: string[]
 }
@@ -295,6 +336,27 @@ export namespace edge {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/policy/evaluate`, JSON.stringify(params))
             return await resp.json() as shared.PolicyDecisionView
+        }
+
+        public async finishAuthenticatedPasskeyRegistration(params: {
+    challengeId: string
+    responseJson: string
+    label?: string
+}): Promise<shared.SessionView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/passkeys/registration/verify`, JSON.stringify(params))
+            return await resp.json() as shared.SessionView
+        }
+
+        public async finishInvitedGuestPasskeyRegistration(params: {
+    principalId: string
+    challengeId: string
+    responseJson: string
+    label?: string
+}): Promise<shared.SessionView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/guests/invitations/registration/verify`, JSON.stringify(params))
+            return await resp.json() as shared.SessionView
         }
 
         public async finishOwnerPasskeyRegistration(params: {
@@ -370,10 +432,22 @@ export namespace edge {
             return await resp.json() as shared.IntegrationCheckpointView
         }
 
+        public async identityAdminSnapshot(): Promise<shared.IdentityAdminSnapshotView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/api/v1/identity/admin`)
+            return await resp.json() as shared.IdentityAdminSnapshotView
+        }
+
         public async identityManifest(): Promise<shared.IdentityManifestView> {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("GET", `/api/v1/identity/manifest`)
             return await resp.json() as shared.IdentityManifestView
+        }
+
+        public async identityProfile(): Promise<shared.IdentityProfileView> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("GET", `/api/v1/identity/me`)
+            return await resp.json() as shared.IdentityProfileView
         }
 
         public async incidentAudit(incidentId: string): Promise<{
@@ -427,6 +501,16 @@ export namespace edge {
             return await resp.json() as {
     homeId: string
     incidents: shared.IncidentView[]
+}
+        }
+
+        public async logout(): Promise<{
+    revoked: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/logout`)
+            return await resp.json() as {
+    revoked: true
 }
         }
 
@@ -487,6 +571,46 @@ export namespace edge {
             // Now make the actual call to the API
             const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/recovery/verify`, JSON.stringify(params))
             return await resp.json() as shared.SessionView
+        }
+
+        public async revokeIdentityGrant(grantId: string): Promise<{
+    revoked: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/admin/grants/${encodeURIComponent(grantId)}/revoke`)
+            return await resp.json() as {
+    revoked: true
+}
+        }
+
+        public async revokeIdentityPasskey(credentialId: string): Promise<{
+    revoked: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/admin/passkeys/${encodeURIComponent(credentialId)}/revoke`)
+            return await resp.json() as {
+    revoked: true
+}
+        }
+
+        public async revokeIdentityPrincipal(principalId: string): Promise<{
+    revoked: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/admin/principals/${encodeURIComponent(principalId)}/revoke`)
+            return await resp.json() as {
+    revoked: true
+}
+        }
+
+        public async revokeIdentitySession(sessionId: string): Promise<{
+    revoked: true
+}> {
+            // Now make the actual call to the API
+            const resp = await this.baseClient.callTypedAPI("POST", `/api/v1/identity/admin/sessions/${encodeURIComponent(sessionId)}/revoke`)
+            return await resp.json() as {
+    revoked: true
+}
         }
 
         public async saveAutomationDraft(params: shared.AutomationDefinitionView): Promise<shared.AutomationDefinitionView> {
@@ -757,8 +881,7 @@ export namespace shared {
         reason: string
     }
 
-    export interface AuthorizationRequestView {
-        sessionToken: string
+    export interface AuthorizationInputView {
         homeId: string
         areaId?: string
         deviceId?: string
@@ -985,6 +1108,36 @@ export namespace shared {
         syncedAt: string
     }
 
+    export interface IdentityAdminSnapshotView {
+        principals: IdentityPrincipalView[]
+        passkeys: IdentityPasskeyView[]
+        sessions: IdentitySessionRecordView[]
+        grants: IdentityGrantView[]
+        audit: IdentityAuditEventView[]
+    }
+
+    export interface IdentityAuditEventView {
+        sequence: number
+        eventType: string
+        principalId?: string
+        actorId?: string
+        occurredAt: string
+        details: { [key: string]: JsonScalarView }
+    }
+
+    export interface IdentityGrantView {
+        grantId: string
+        principalId: string
+        homeId: string
+        areaId?: string
+        deviceId?: string
+        capability?: string
+        riskCeiling: RiskClassView
+        expiresAt?: string
+        createdAt: string
+        revokedAt?: string
+    }
+
     export interface IdentityManifestView {
         bootstrap: "local-owner"
         authentication: ("passkey" | "local-recovery")[]
@@ -996,7 +1149,45 @@ export namespace shared {
         }
     }
 
+    export interface IdentityPasskeyView {
+        credentialId: string
+        principalId: string
+        label: string
+        deviceType: string
+        backedUp: boolean
+        transports: string[]
+        createdAt: string
+        revokedAt?: string
+    }
+
+    export interface IdentityPrincipalView {
+        principalId: string
+        displayName: string
+        role: IdentityRoleView
+        status: "pending" | "active" | "revoked"
+        expiresAt?: string
+        createdAt: string
+    }
+
+    export interface IdentityProfileView {
+        principalId: string
+        displayName: string
+        role: IdentityRoleView
+        status: "pending" | "active" | "revoked"
+        expiresAt?: string
+        sessionId: string
+        sessionExpiresAt: string
+    }
+
     export type IdentityRoleView = "Owner" | "Admin" | "Member" | "Guest" | "Service Account"
+
+    export interface IdentitySessionRecordView {
+        sessionId: string
+        principalId: string
+        expiresAt: string
+        createdAt: string
+        revokedAt?: string
+    }
 
     export interface IncidentAuditView {
         sequence: number
@@ -1111,6 +1302,7 @@ export namespace shared {
     export type RiskClassView = "R0" | "R1" | "R2" | "R3" | "R4"
 
     export interface SessionView {
+        sessionId: string
         sessionToken: string
         principalId: string
         role: IdentityRoleView

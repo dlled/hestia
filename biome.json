@@ -23,6 +23,7 @@
       "!sdk",
       "!**/.turbo",
       "!**/test-results",
+      "!output/playwright",
       "!infra/scripts"
     ]
   }

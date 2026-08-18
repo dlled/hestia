@@ -9,6 +9,7 @@ describe("App", () => {
   });
 
   beforeEach(() => {
+    sessionStorage.clear();
     let approved = false;
     vi.stubGlobal(
       "fetch",

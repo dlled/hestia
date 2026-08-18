@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IdentityCenter } from "./identity-center";
 import {
   type AgentIntentState,
   type AutomationAudit,
@@ -311,6 +312,8 @@ export function App(): React.JSX.Element {
           {meta?.thesis ?? "Probabilistic intelligence above; deterministic execution below."}
         </p>
       </header>
+
+      <IdentityCenter />
 
       <main className="layout">
         <section className="rooms" aria-label="Observed home">

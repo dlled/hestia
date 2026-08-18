@@ -26,9 +26,9 @@ Natural-language interpretation, strict model output, durable clarification, det
 
 ### Phase 3B — Identity and incident notification vertical
 
-Implemented in native Encore services. Browser hardware-passkey UX and notification preferences remain product increments.
+Implemented in native Encore services. The browser increment now covers local owner bootstrap, discoverable passkey login, recovery, scoped one-time guest enrollment, identity inventory and immediate revocation. Notification preferences and external channels remain product increments.
 
-Exit proof: unit policy/auth tests, service integration tests, and a black-box incident flow with acknowledgement, restart, and denied guest escalation.
+Exit proof: unit policy/auth tests, service integration tests, a Chrome passkey black-box with two isolated authenticators, and a black-box incident flow with acknowledgement, restart, and denied guest escalation.
 
 ### Phase 4 — Automation DSL, simulation, and proactivity
 
@@ -51,7 +51,7 @@ Exit proof: adapter contract suite, MCP conformance/integrity suite, plugin sand
 
 ## Remaining operational closure
 
-The production UI identity flow, notification preferences/channels, observability pipeline, backup/restore drill, chaos schedule and full legacy-runtime deletion remain follow-up feature PRs. The Encore backend baseline no longer depends on legacy HTTP services; Temporal workers use the authenticated `workerbridge` for model and plan activity calls.
+Service-account and advanced scope administration, a second physical browser-engine identity pass, notification preferences/channels, observability pipeline, backup/restore drill, chaos schedule and full legacy-runtime deletion remain follow-up feature PRs. The Encore backend baseline no longer depends on legacy HTTP services; Temporal workers use the authenticated `workerbridge` for model and plan activity calls.
 
 ## Current verification commands
 
@@ -63,6 +63,7 @@ pnpm lint
 pnpm encore:check
 pnpm encore:test
 pnpm encore:build:selfhost
+pnpm encore:test:identity-browser
 pnpm encore:test:blackbox
 pnpm test:blackbox:phase1
 pnpm test:blackbox:phase2

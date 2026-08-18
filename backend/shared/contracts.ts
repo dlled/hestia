@@ -312,19 +312,91 @@ export interface IdentityManifestView {
 }
 
 export interface SessionView {
+  sessionId: string;
   sessionToken: string;
   principalId: string;
   role: IdentityRoleView;
   expiresAt: string;
 }
 
-export interface AuthorizationRequestView {
-  sessionToken: string;
+export interface IdentityProfileView {
+  principalId: string;
+  displayName: string;
+  role: IdentityRoleView;
+  status: "pending" | "active" | "revoked";
+  expiresAt?: string;
+  sessionId: string;
+  sessionExpiresAt: string;
+}
+
+export interface IdentityPrincipalView {
+  principalId: string;
+  displayName: string;
+  role: IdentityRoleView;
+  status: "pending" | "active" | "revoked";
+  expiresAt?: string;
+  createdAt: string;
+}
+
+export interface IdentityPasskeyView {
+  credentialId: string;
+  principalId: string;
+  label: string;
+  deviceType: string;
+  backedUp: boolean;
+  transports: string[];
+  createdAt: string;
+  revokedAt?: string;
+}
+
+export interface IdentitySessionRecordView {
+  sessionId: string;
+  principalId: string;
+  expiresAt: string;
+  createdAt: string;
+  revokedAt?: string;
+}
+
+export interface IdentityGrantView {
+  grantId: string;
+  principalId: string;
+  homeId: string;
+  areaId?: string;
+  deviceId?: string;
+  capability?: string;
+  riskCeiling: RiskClassView;
+  expiresAt?: string;
+  createdAt: string;
+  revokedAt?: string;
+}
+
+export interface IdentityAuditEventView {
+  sequence: number;
+  eventType: string;
+  principalId?: string;
+  actorId?: string;
+  occurredAt: string;
+  details: Record<string, JsonScalarView>;
+}
+
+export interface IdentityAdminSnapshotView {
+  principals: IdentityPrincipalView[];
+  passkeys: IdentityPasskeyView[];
+  sessions: IdentitySessionRecordView[];
+  grants: IdentityGrantView[];
+  audit: IdentityAuditEventView[];
+}
+
+export interface AuthorizationInputView {
   homeId: string;
   areaId?: string;
   deviceId?: string;
   capability?: string;
   risk?: RiskClassView;
+}
+
+export interface AuthorizationRequestView extends AuthorizationInputView {
+  sessionToken: string;
 }
 
 export interface AuthorizationDecisionView {

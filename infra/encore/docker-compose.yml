@@ -142,6 +142,17 @@ services:
       temporal: { condition: service_healthy }
     restart: unless-stopped
 
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        NGINX_CONFIG: infra/docker/nginx.encore.conf
+    ports: ["${WEB_PORT:-5173}:8080"]
+    depends_on:
+      hestia: { condition: service_started }
+    restart: unless-stopped
+
   automation-worker:
     <<: *worker
     command: ["node", "apps/workers-automation/dist/worker.js"]

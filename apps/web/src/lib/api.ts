@@ -202,22 +202,143 @@ export interface AutomationAudit {
   }>;
 }
 
-export async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(path);
-  if (!response.ok) {
-    throw new Error(`${path} failed (${response.status})`);
+export type IdentityRole = "Owner" | "Admin" | "Member" | "Guest" | "Service Account";
+
+export interface IdentitySession {
+  sessionId: string;
+  sessionToken: string;
+  principalId: string;
+  role: IdentityRole;
+  expiresAt: string;
+}
+
+export interface IdentityProfile {
+  principalId: string;
+  displayName: string;
+  role: IdentityRole;
+  status: "pending" | "active" | "revoked";
+  expiresAt?: string;
+  sessionId: string;
+  sessionExpiresAt: string;
+}
+
+export interface IdentityAdminSnapshot {
+  principals: Array<{
+    principalId: string;
+    displayName: string;
+    role: IdentityRole;
+    status: "pending" | "active" | "revoked";
+    expiresAt?: string;
+    createdAt: string;
+  }>;
+  passkeys: Array<{
+    credentialId: string;
+    principalId: string;
+    label: string;
+    deviceType: string;
+    backedUp: boolean;
+    transports: string[];
+    createdAt: string;
+    revokedAt?: string;
+  }>;
+  sessions: Array<{
+    sessionId: string;
+    principalId: string;
+    expiresAt: string;
+    createdAt: string;
+    revokedAt?: string;
+  }>;
+  grants: Array<{
+    grantId: string;
+    principalId: string;
+    homeId: string;
+    areaId?: string;
+    deviceId?: string;
+    capability?: string;
+    riskCeiling: "R0" | "R1" | "R2" | "R3" | "R4";
+    expiresAt?: string;
+    createdAt: string;
+    revokedAt?: string;
+  }>;
+  audit: Array<{
+    sequence: number;
+    eventType: string;
+    principalId?: string;
+    actorId?: string;
+    occurredAt: string;
+    details: Record<string, unknown>;
+  }>;
+}
+
+const identitySessionKey = "hestia.identity.session.v1";
+
+export function readIdentitySession(): IdentitySession | null {
+  if (typeof sessionStorage === "undefined") return null;
+  const stored = sessionStorage.getItem(identitySessionKey);
+  if (!stored) return null;
+  try {
+    const session = JSON.parse(stored) as Partial<IdentitySession>;
+    if (
+      typeof session.sessionId !== "string" ||
+      typeof session.sessionToken !== "string" ||
+      typeof session.principalId !== "string" ||
+      typeof session.role !== "string" ||
+      typeof session.expiresAt !== "string" ||
+      Date.parse(session.expiresAt) <= Date.now()
+    ) {
+      clearIdentitySession();
+      return null;
+    }
+    return session as IdentitySession;
+  } catch {
+    clearIdentitySession();
+    return null;
   }
-  return (await response.json()) as T;
+}
+
+export function storeIdentitySession(session: IdentitySession): void {
+  sessionStorage.setItem(identitySessionKey, JSON.stringify(session));
+}
+
+export function clearIdentitySession(): void {
+  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(identitySessionKey);
+}
+
+export async function getJson<T>(path: string): Promise<T> {
+  return requestJson<T>(path, { method: "GET" });
 }
 
 export async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(path, {
+  return requestJson<T>(path, {
     method: "POST",
-    headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
+  const session = readIdentitySession();
+  const headers = new Headers(init.headers);
+  headers.set("content-type", "application/json");
+  if (session) headers.set("authorization", `Bearer ${session.sessionToken}`);
+  const response = await fetch(path, { ...init, headers });
   if (!response.ok) {
-    throw new Error(`${path} failed (${response.status})`);
+    const message = await responseMessage(response);
+    if (response.status === 401 && session) clearIdentitySession();
+    throw new Error(message || `${path} failed (${response.status})`);
   }
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+async function responseMessage(response: Response): Promise<string> {
+  const text = await response.text();
+  if (!text) return "";
+  try {
+    const body = JSON.parse(text) as { message?: unknown; detail?: unknown };
+    if (typeof body.message === "string") return body.message;
+    if (typeof body.detail === "string") return body.detail;
+  } catch {
+    return text;
+  }
+  return text;
 }

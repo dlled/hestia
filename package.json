@@ -28,11 +28,13 @@
     "encore:check": "encore check",
     "encore:test": "encore test",
     "encore:test:blackbox": "node infra/encore/scripts/blackbox.mjs",
+    "encore:test:identity-browser": "playwright test --config apps/web/playwright.config.ts",
     "encore:build:selfhost": "sh infra/encore/scripts/build-selfhost.sh",
     "sdk:generate": "encore gen client --lang typescript --output sdk/client.ts && encore gen client --lang openapi --openapi-exclude-private-endpoints --output sdk/openapi.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.3",
     "turbo": "^2.5.8",
     "typescript": "^5.9.2",
