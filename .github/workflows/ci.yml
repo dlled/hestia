@@ -4,19 +4,33 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, wtr-ci, "wtr-${{ github.run_id }}-${{ github.run_attempt }}-check"]
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          version: 10
-      - uses: actions/setup-node@v4
+          persist-credentials: false
+      - name: Verify isolated runner identity
+        run: test ! -e /run/wtr-jit
+      - name: Install runtime library in the disposable guest
+        run: |
+          sudo -n apt-get update
+          sudo -n env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libatomic1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24
-          cache: pnpm
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm typecheck
