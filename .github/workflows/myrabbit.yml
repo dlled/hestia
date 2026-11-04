@@ -1,0 +1,31 @@
+# myrabbit PR reviewer (dlled/myrabbit). Managed by the myrabbit rollout.
+name: myrabbit
+on:
+  workflow_dispatch:
+    inputs:
+      pr: { description: "PR number to review (full review)", required: true, type: number }
+  pull_request: # automatic reviews (design.md §10.5 step 2)
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: myrabbit-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+jobs:
+  myrabbit:
+    if: >-
+      !endsWith(github.actor, '[bot]') && (
+        github.event_name == 'workflow_dispatch' || (
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          !endsWith(github.event.pull_request.user.login, '[bot]')))
+    permissions:
+      contents: read # GITHUB_TOKEN stays read-only; GitHub writes use the App token
+    uses: dlled/myrabbit/.github/workflows/review.yml@6299403fa92a2125e51f76afb151c809b43ceb50 # myrabbit release (PR #61), never a branch
+    with:
+      pr: ${{ fromJSON(format('{0}', inputs.pr || 0)) }} # dispatch number inputs arrive as strings; the callee input is typed number
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+      MYRABBIT_APP_CLIENT_ID: ${{ secrets.MYRABBIT_APP_CLIENT_ID }}
+      MYRABBIT_APP_PRIVATE_KEY: ${{ secrets.MYRABBIT_APP_PRIVATE_KEY }}
